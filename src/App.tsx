@@ -3,7 +3,7 @@ import { Toaster as Sonner, toast } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { OfflineRetryBanner } from "@/components/global/OfflineRetryBanner";
 import { ClientProtection } from "@/components/global/ClientProtection";
-import { GlobalRecovery } from "@/components/global/GlobalRecovery";
+import { GlobalRecovery, AppErrorBoundary } from "@/components/global/GlobalRecovery";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
