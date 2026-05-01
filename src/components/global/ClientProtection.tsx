@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 
 const BLOCKED_KEYS = new Set(["c", "x", "u", "s", "a"]);
 
 export function ClientProtection() {
   const { user } = useAuth();
+  const location = useLocation();
   const [clientIp, setClientIp] = useState("unknown-ip");
   const [devtoolsBlocked, setDevtoolsBlocked] = useState(false);
   const [anonSessionId] = useState(() => {
@@ -142,13 +144,20 @@ export function ClientProtection() {
     );
   }
 
+  // Don't render the watermark overlay on auth/public screens — it leaks into
+  // form fields and looks like broken UI. Only watermark authenticated views.
+  const PUBLIC_PATHS = ["/auth", "/login", "/signup", "/", "/marketplace"];
+  if (!user || PUBLIC_PATHS.some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`))) {
+    return null;
+  }
+
   return (
       <div
-        className="pointer-events-none fixed inset-0 z-[9998] overflow-hidden select-none"
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
         aria-hidden="true"
       >
-      <div className="absolute inset-0 opacity-10 [background-image:repeating-linear-gradient(-30deg,transparent_0px,transparent_140px,rgba(255,255,255,0.4)_140px,rgba(255,255,255,0.4)_180px)]" />
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-medium tracking-wide opacity-20">
+      <div className="absolute inset-0 opacity-[0.04] [background-image:repeating-linear-gradient(-30deg,transparent_0px,transparent_140px,rgba(255,255,255,0.4)_140px,rgba(255,255,255,0.4)_180px)]" />
+      <div className="absolute inset-0 flex items-center justify-center text-xs font-medium tracking-wide opacity-[0.06]">
         {watermarkText}
       </div>
     </div>
