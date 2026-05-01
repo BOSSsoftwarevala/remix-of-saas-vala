@@ -112,86 +112,101 @@ async function fetchWithTimeoutAndRetry(url: string, config: RequestInit): Promi
 }
 
 
-  const headers = await getAuthHeaders();
-  const now = Date.now();
+async function apiRequest<T = unknown>(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  rawPath: string,
+  body?: unknown,
+): Promise<T> {
+  const startedAt = performance.now();
+  let path = rawPath;
 
-  const config: RequestInit = { method, headers };
-  const cacheKey = method === 'GET' ? pathWithQuery : '';
-
-  if (method === 'GET' && body) {
+  // Build query string for GETs
+  if (method === 'GET' && body && typeof body === 'object') {
     const params = new URLSearchParams();
-    Object.entries(body).forEach(([k, v]) => {
+    Object.entries(body as Record<string, unknown>).forEach(([k, v]) => {
       if (v !== undefined && v !== null) params.set(k, String(v));
     });
-    path += '?' + params.toString();
-  } else if (body && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
-    config.body = JSON.stringify(body);
+    const qs = params.toString();
+    if (qs) path += (path.includes('?') ? '&' : '?') + qs;
   }
 
   const pathWithoutLeadingSlash = path.replace(/^\/+/, '');
-  const requestUrl = `${API_BASE}/${pathWithoutLeadingSlash}`;
+  const cacheKey = method === 'GET' ? path : '';
+  const getCacheKey = cacheKey;
+
   const debugLog = (label: string, data?: unknown) => {
     if (!DEBUG_API) return;
     console.debug(`[api:${method}:${pathWithoutLeadingSlash}] ${label}`, data ?? '');
   };
-  if (degradedUntil > now && method === 'GET') {
+
+  // Deduplicate concurrent identical GETs
+  if (method === 'GET' && inFlightGetRequests.has(getCacheKey)) {
+    return inFlightGetRequests.get(getCacheKey) as Promise<T>;
+  }
+
+  // Serve from cache when degraded
+  if (degradedUntil > Date.now() && method === 'GET') {
     const cached = responseCache.get(cacheKey);
-    if (cached && now - cached.ts < API_CACHE_TTL_MS) {
-      const elapsed = Math.round(performance.now() - startedAt);
-      debugLog('cache-hit', { elapsed_ms: elapsed, sla_ms: API_CACHE_SLA_MS });
-      warnIfCacheSlaExceeded(pathWithoutLeadingSlash, elapsed);
+    if (cached && Date.now() - cached.ts < API_CACHE_TTL_MS) {
+      debugLog('cache-hit', { elapsed_ms: Math.round(performance.now() - startedAt) });
       return cached.data as T;
     }
   }
 
-  const data = await res.json().catch(() => ({}));
-  debugLog('response', { status: res.status, elapsed_ms: Math.round(performance.now() - startedAt) });
+  const runRequest = async (): Promise<T> => {
+    const headers = await getAuthHeaders();
+    const config: RequestInit = { method, headers };
+    if (body && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+      config.body = JSON.stringify(body);
+    }
 
-  if (!res.ok) {
-    const errorPayload = data?.error;
-    const message =
-      typeof errorPayload === 'string'
-        ? errorPayload
-        : errorPayload?.message || data?.message || `API error: ${res.status}`;
-    const code = errorPayload?.code || data?.code;
-    if (res.status === 401 || code === 'TOKEN_EXPIRED') {
-      savePreLogoutState(window.location.pathname, window.location.search, window.location.hash);
-      savePostLoginRedirect(`${window.location.pathname}${window.location.search}${window.location.hash}`);
-      if (window.location.pathname !== '/auth') {
-        window.location.assign('/auth');
+    const requestUrl = `${API_BASE}/${pathWithoutLeadingSlash}`;
+    const res = await fetchWithTimeoutAndRetry(requestUrl, config);
+    const data = await res.json().catch(() => ({}));
+    debugLog('response', { status: res.status, elapsed_ms: Math.round(performance.now() - startedAt) });
+
+    if (!res.ok) {
+      const errorPayload = data?.error;
+      const message =
+        typeof errorPayload === 'string'
+          ? errorPayload
+          : errorPayload?.message || data?.message || `API error: ${res.status}`;
+      const code = errorPayload?.code || data?.code;
+      if (res.status === 401 || code === 'TOKEN_EXPIRED') {
+        savePreLogoutState(window.location.pathname, window.location.search, window.location.hash);
+        savePostLoginRedirect(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+        if (window.location.pathname !== '/auth') {
+          window.location.assign('/auth');
+        }
+      }
+      consecutiveFailures += 1;
+      if (consecutiveFailures >= API_ESCALATION_THRESHOLD) {
+        degradedUntil = Date.now() + 30_000;
+        if (!escalationRaised) {
+          escalationRaised = true;
+          void notifyCriticalApiEscalation({
+            failures: consecutiveFailures,
+            path: pathWithoutLeadingSlash,
+            status: res.status,
+            code,
+          });
+        }
+      }
+      throw new ApiError(message, res.status, code, data);
+    }
+
+    consecutiveFailures = 0;
+    degradedUntil = 0;
+    escalationRaised = false;
+    if (method === 'GET') {
+      responseCache.set(cacheKey, { data, ts: Date.now() });
+    } else {
+      for (const key of responseCache.keys()) {
+        if (key.startsWith(`${path}`) || key.includes(path.split('?')[0])) responseCache.delete(key);
       }
     }
-    consecutiveFailures += 1;
-    if (consecutiveFailures >= API_ESCALATION_THRESHOLD) {
-      degradedUntil = Date.now() + 30_000;
-      if (!escalationRaised) {
-        escalationRaised = true;
-        void notifyCriticalApiEscalation({
-          failures: consecutiveFailures,
-          path: pathWithoutLeadingSlash,
-          status: res.status,
-          code,
-        });
-      }
-    }
-    throw new ApiError(message, res.status, code, data);
-  }
 
-  consecutiveFailures = 0;
-  degradedUntil = 0;
-  escalationRaised = false;
-  if (method === 'GET') {
-    responseCache.set(cacheKey, { data, ts: Date.now() });
-    const elapsed = Math.round(performance.now() - startedAt);
-    debugLog('cache-store', { elapsed_ms: elapsed, sla_ms: API_CACHE_SLA_MS });
-    warnIfCacheSlaExceeded(pathWithoutLeadingSlash, elapsed);
-  } else {
-    for (const key of responseCache.keys()) {
-      if (key.startsWith(`${path}`) || key.includes(path.split('?')[0])) responseCache.delete(key);
-    }
-  }
-
-  return data;
+    return data as T;
   };
 
   if (method !== 'GET') {
@@ -201,7 +216,7 @@ async function fetchWithTimeoutAndRetry(url: string, config: RequestInit): Promi
     inFlightGetRequests.delete(getCacheKey);
   });
   inFlightGetRequests.set(getCacheKey, pending);
-  return pending;
+  return pending as Promise<T>;
 }
 
 export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
