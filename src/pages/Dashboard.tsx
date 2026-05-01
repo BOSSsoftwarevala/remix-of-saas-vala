@@ -54,9 +54,9 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <StatsCard
             title="Total Products"
             value={statsLoading ? 0 : stats.totalProducts}
@@ -154,32 +154,33 @@ export default function Dashboard() {
 
         {/* Activity Feed - visible to Super Admin */}
         {isSuperAdmin && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             <div className="lg:col-span-2">
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">
+              <div className="rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   Platform Overview
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <Users className="h-6 w-6 mx-auto mb-2 text-primary" />
-                    <p className="text-2xl font-bold text-foreground">{stats.totalResellers}</p>
-                    <p className="text-sm text-muted-foreground">Resellers</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="text-center p-3 md:p-4 bg-muted/30 rounded-lg">
+                    <Users className="h-5 w-5 mx-auto mb-2 text-primary" />
+                    <p className="text-xl font-bold text-foreground">{stats.totalResellers}</p>
+                    <p className="text-xs text-muted-foreground">Resellers</p>
                   </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <FileText className="h-6 w-6 mx-auto mb-2 text-cyan" />
-                    <p className="text-2xl font-bold text-foreground">{stats.totalProducts}</p>
-                    <p className="text-sm text-muted-foreground">Products</p>
+                  <div className="text-center p-3 md:p-4 bg-muted/30 rounded-lg">
+                    <FileText className="h-5 w-5 mx-auto mb-2 text-blue-500" />
+                    <p className="text-xl font-bold text-foreground">{stats.totalProducts}</p>
+                    <p className="text-xs text-muted-foreground">Products</p>
                   </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <TrendingUp className="h-6 w-6 mx-auto mb-2 text-green" />
-                    <p className="text-2xl font-bold text-foreground">{stats.totalLeads}</p>
-                    <p className="text-sm text-muted-foreground">Leads</p>
+                  <div className="text-center p-3 md:p-4 bg-muted/30 rounded-lg">
+                    <TrendingUp className="h-5 w-5 mx-auto mb-2 text-emerald-500" />
+                    <p className="text-xl font-bold text-foreground">{stats.totalLeads}</p>
+                    <p className="text-xs text-muted-foreground">Leads</p>
                   </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <Key className="h-6 w-6 mx-auto mb-2 text-purple" />
-                    <p className="text-2xl font-bold text-foreground">{stats.totalKeys}</p>
-                    <p className="text-sm text-muted-foreground">License Keys</p>
+                  <div className="text-center p-3 md:p-4 bg-muted/30 rounded-lg">
+                    <Key className="h-5 w-5 mx-auto mb-2 text-violet-500" />
+                    <p className="text-xl font-bold text-foreground">{stats.totalKeys}</p>
+                    <p className="text-xs text-muted-foreground">License Keys</p>
                   </div>
                 </div>
               </div>
