@@ -563,45 +563,6 @@ export type Database = {
         }
         Relationships: []
       }
-      apk_builds: {
-        Row: {
-          apk_url: string | null
-          build_id: string
-          build_status: string
-          created_at: string
-          id: string
-          install_count: number
-          product_id: string | null
-          source: string
-          status: string
-          version: string
-        }
-        Insert: {
-          apk_url?: string | null
-          build_id?: string
-          build_status?: string
-          created_at?: string
-          id?: string
-          install_count?: number
-          product_id?: string | null
-          source?: string
-          status?: string
-          version: string
-        }
-        Update: {
-          apk_url?: string | null
-          build_id?: string
-          build_status?: string
-          created_at?: string
-          id?: string
-          install_count?: number
-          product_id?: string | null
-          source?: string
-          status?: string
-          version?: string
-        }
-        Relationships: []
-      }
       apk_download_logs: {
         Row: {
           created_at: string
@@ -818,84 +779,36 @@ export type Database = {
       audit_logs: {
         Row: {
           action: Database["public"]["Enums"]["audit_action"]
-          actor_id: string | null
           created_at: string | null
-          entity: string | null
-          entity_id: string | null
-          event_category: string
-          event_type: string
           id: string
-          ingest_source: string
-          integrity_hash: string | null
-          integrity_prev_hash: string | null
-          integrity_version: number
           ip_address: string | null
-          is_system: boolean
-          meta: Json | null
-          metadata: Json
           new_data: Json | null
-          occurred_at: string
           old_data: Json | null
           record_id: string | null
           table_name: string
-          target_id: string | null
-          target_table: string | null
-          ts: string | null
           user_agent: string | null
           user_id: string | null
         }
         Insert: {
           action: Database["public"]["Enums"]["audit_action"]
-          actor_id?: string | null
           created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          event_category?: string
-          event_type?: string
           id?: string
-          ingest_source?: string
-          integrity_hash?: string | null
-          integrity_prev_hash?: string | null
-          integrity_version?: number
           ip_address?: string | null
-          is_system?: boolean
-          meta?: Json | null
-          metadata?: Json
           new_data?: Json | null
-          occurred_at?: string
           old_data?: Json | null
           record_id?: string | null
-          target_id?: string | null
-          target_table?: string | null
-          ts?: string | null
           table_name: string
           user_agent?: string | null
           user_id?: string | null
         }
         Update: {
           action?: Database["public"]["Enums"]["audit_action"]
-          actor_id?: string | null
           created_at?: string | null
-          entity?: string | null
-          entity_id?: string | null
-          event_category?: string
-          event_type?: string
           id?: string
-          ingest_source?: string
-          integrity_hash?: string | null
-          integrity_prev_hash?: string | null
-          integrity_version?: number
           ip_address?: string | null
-          is_system?: boolean
-          meta?: Json | null
-          metadata?: Json
           new_data?: Json | null
-          occurred_at?: string
           old_data?: Json | null
           record_id?: string | null
-          target_id?: string | null
-          target_table?: string | null
-          ts?: string | null
           table_name?: string
           user_agent?: string | null
           user_id?: string | null
@@ -2790,8 +2703,6 @@ export type Database = {
       }
       products: {
         Row: {
-          build_id: string | null
-          build_status: string | null
           apk_enabled: boolean | null
           apk_file_size: number | null
           apk_url: string | null
@@ -2859,8 +2770,6 @@ export type Database = {
           visibility: string | null
         }
         Insert: {
-          build_id?: string | null
-          build_status?: string | null
           apk_enabled?: boolean | null
           apk_file_size?: number | null
           apk_url?: string | null
@@ -2928,8 +2837,6 @@ export type Database = {
           visibility?: string | null
         }
         Update: {
-          build_id?: string | null
-          build_status?: string | null
           apk_enabled?: boolean | null
           apk_file_size?: number | null
           apk_url?: string | null
@@ -3168,53 +3075,16 @@ export type Database = {
         }
         Relationships: []
       }
-      reseller_limits: {
-        Row: {
-          created_at: string
-          max_clients: number
-          max_keys: number
-          reseller_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          max_clients?: number
-          max_keys?: number
-          reseller_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          max_clients?: number
-          max_keys?: number
-          reseller_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reseller_limits_reseller_id_fkey"
-            columns: ["reseller_id"]
-            isOneToOne: true
-            referencedRelation: "resellers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       resellers: {
         Row: {
           commission_percent: number | null
           company_name: string | null
           created_at: string | null
           credit_limit: number | null
-          credit_used: number
           id: string
           is_active: boolean | null
           is_verified: boolean | null
-          kyc_status: string
           meta: Json | null
-          status: string
-          tier: string
-          tier_level: string
           total_commission: number | null
           total_sales: number | null
           updated_at: string | null
@@ -3225,15 +3095,10 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           credit_limit?: number | null
-          credit_used?: number
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
-          kyc_status?: string
           meta?: Json | null
-          status?: string
-          tier?: string
-          tier_level?: string
           total_commission?: number | null
           total_sales?: number | null
           updated_at?: string | null
@@ -3244,15 +3109,10 @@ export type Database = {
           company_name?: string | null
           created_at?: string | null
           credit_limit?: number | null
-          credit_used?: number
           id?: string
           is_active?: boolean | null
           is_verified?: boolean | null
-          kyc_status?: string
           meta?: Json | null
-          status?: string
-          tier?: string
-          tier_level?: string
           total_commission?: number | null
           total_sales?: number | null
           updated_at?: string | null
@@ -4160,761 +4020,6 @@ export type Database = {
         }
         Relationships: []
       }
-      trace_logs: {
-        Row: {
-          action: string | null
-          api_endpoint: string | null
-          created_at: string
-          db_queries: Json
-          execution_time: number | null
-          id: string
-          module: string | null
-          request_payload: Json
-          response_status: number | null
-          trace_id: string
-          user_id: string | null
-        }
-        Insert: {
-          action?: string | null
-          api_endpoint?: string | null
-          created_at?: string
-          db_queries?: Json
-          execution_time?: number | null
-          id?: string
-          module?: string | null
-          request_payload?: Json
-          response_status?: number | null
-          trace_id: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string | null
-          api_endpoint?: string | null
-          created_at?: string
-          db_queries?: Json
-          execution_time?: number | null
-          id?: string
-          module?: string | null
-          request_payload?: Json
-          response_status?: number | null
-          trace_id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      currencies: {
-        Row: {
-          code: string
-          created_at: string
-          currency_id: string
-          rate: number
-          status: string
-          symbol: string | null
-          updated_at: string
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          currency_id?: string
-          rate?: number
-          status?: string
-          symbol?: string | null
-          updated_at?: string
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          currency_id?: string
-          rate?: number
-          status?: string
-          symbol?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      countries: {
-        Row: {
-          country_id: string
-          created_at: string
-          currency_id: string | null
-          lang_id: string | null
-          name: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          country_id?: string
-          created_at?: string
-          currency_id?: string | null
-          lang_id?: string | null
-          name: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          country_id?: string
-          created_at?: string
-          currency_id?: string | null
-          lang_id?: string | null
-          name?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "countries_currency_id_fkey"
-            columns: ["currency_id"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["currency_id"]
-          },
-          {
-            foreignKeyName: "countries_lang_id_fkey"
-            columns: ["lang_id"]
-            isOneToOne: false
-            referencedRelation: "languages"
-            referencedColumns: ["code"]
-          },
-        ]
-      }
-      product_plans: {
-        Row: {
-          created_at: string
-          duration: string
-          features: Json
-          name: string
-          plan_id: string
-          price: number
-          product_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          duration: string
-          features?: Json
-          name: string
-          plan_id?: string
-          price?: number
-          product_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          duration?: string
-          features?: Json
-          name?: string
-          plan_id?: string
-          price?: number
-          product_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_plans_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_versions: {
-        Row: {
-          apk_id: string | null
-          changelog: string | null
-          created_at: string
-          product_id: string
-          version: string
-          version_id: string
-        }
-        Insert: {
-          apk_id?: string | null
-          changelog?: string | null
-          created_at?: string
-          product_id: string
-          version: string
-          version_id?: string
-        }
-        Update: {
-          apk_id?: string | null
-          changelog?: string | null
-          created_at?: string
-          product_id?: string
-          version?: string
-          version_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_versions_apk_id_fkey"
-            columns: ["apk_id"]
-            isOneToOne: false
-            referencedRelation: "apk_builds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_versions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      product_access_rules: {
-        Row: {
-          condition: string
-          created_at: string
-          id: string
-          product_id: string
-          role: string
-        }
-        Insert: {
-          condition: string
-          created_at?: string
-          id?: string
-          product_id: string
-          role: string
-        }
-        Update: {
-          condition?: string
-          created_at?: string
-          id?: string
-          product_id?: string
-          role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_access_rules_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_intents: {
-        Row: {
-          amount: number
-          created_at: string
-          currency: string
-          expires_at: string | null
-          intent_id: string
-          status: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          currency: string
-          expires_at?: string | null
-          intent_id?: string
-          status?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          currency?: string
-          expires_at?: string | null
-          intent_id?: string
-          status?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      payment_webhooks: {
-        Row: {
-          created_at: string
-          payload: Json
-          provider: string
-          status: string
-          updated_at: string
-          webhook_id: string
-        }
-        Insert: {
-          created_at?: string
-          payload?: Json
-          provider: string
-          status?: string
-          updated_at?: string
-          webhook_id?: string
-        }
-        Update: {
-          created_at?: string
-          payload?: Json
-          provider?: string
-          status?: string
-          updated_at?: string
-          webhook_id?: string
-        }
-        Relationships: []
-      }
-      refunds: {
-        Row: {
-          amount: number
-          created_at: string
-          payment_id: string | null
-          reason: string | null
-          refund_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          payment_id?: string | null
-          reason?: string | null
-          refund_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          payment_id?: string | null
-          reason?: string | null
-          refund_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "refunds_payment_id_fkey"
-            columns: ["payment_id"]
-            isOneToOne: false
-            referencedRelation: "payments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ledger_entries: {
-        Row: {
-          balance_after: number
-          created_at: string
-          credit: number
-          debit: number
-          entry_id: string
-          reference_id: string | null
-          reference_type: string | null
-          wallet_id: string
-        }
-        Insert: {
-          balance_after?: number
-          created_at?: string
-          credit?: number
-          debit?: number
-          entry_id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          wallet_id: string
-        }
-        Update: {
-          balance_after?: number
-          created_at?: string
-          credit?: number
-          debit?: number
-          entry_id?: string
-          reference_id?: string | null
-          reference_type?: string | null
-          wallet_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ledger_entries_wallet_id_fkey"
-            columns: ["wallet_id"]
-            isOneToOne: false
-            referencedRelation: "wallets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reseller_commissions: {
-        Row: {
-          created_at: string
-          id: string
-          percent: number
-          product_id: string
-          reseller_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          percent: number
-          product_id: string
-          reseller_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          percent?: number
-          product_id?: string
-          reseller_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reseller_commissions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reseller_commissions_reseller_id_fkey"
-            columns: ["reseller_id"]
-            isOneToOne: false
-            referencedRelation: "resellers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      api_usage: {
-        Row: {
-          cost: number
-          created_at: string
-          endpoint: string
-          id: string
-          key_id: string | null
-          tokens_used: number
-          trace_id: string | null
-        }
-        Insert: {
-          cost?: number
-          created_at?: string
-          endpoint: string
-          id?: string
-          key_id?: string | null
-          tokens_used?: number
-          trace_id?: string | null
-        }
-        Update: {
-          cost?: number
-          created_at?: string
-          endpoint?: string
-          id?: string
-          key_id?: string | null
-          tokens_used?: number
-          trace_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "api_usage_key_id_fkey"
-            columns: ["key_id"]
-            isOneToOne: false
-            referencedRelation: "api_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_pipeline: {
-        Row: {
-          created_at: string
-          is_active: boolean
-          model_id: string | null
-          role: string
-          sequence: number
-          step_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          is_active?: boolean
-          model_id?: string | null
-          role: string
-          sequence: number
-          step_id?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          is_active?: boolean
-          model_id?: string | null
-          role?: string
-          sequence?: number
-          step_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_pipeline_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "ai_models"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      build_logs: {
-        Row: {
-          created_at: string
-          job_id: string | null
-          log_id: string
-          output: string | null
-          step: string | null
-        }
-        Insert: {
-          created_at?: string
-          job_id?: string | null
-          log_id?: string
-          output?: string | null
-          step?: string | null
-        }
-        Update: {
-          created_at?: string
-          job_id?: string | null
-          log_id?: string
-          output?: string | null
-          step?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "build_logs_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "build_queue"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      build_artifacts: {
-        Row: {
-          apk_url: string | null
-          artifact_id: string
-          checksum: string | null
-          created_at: string
-          job_id: string | null
-        }
-        Insert: {
-          apk_url?: string | null
-          artifact_id?: string
-          checksum?: string | null
-          created_at?: string
-          job_id?: string | null
-        }
-        Update: {
-          apk_url?: string | null
-          artifact_id?: string
-          checksum?: string | null
-          created_at?: string
-          job_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "build_artifacts_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "build_queue"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      server_metrics: {
-        Row: {
-          cpu: number | null
-          created_at: string
-          disk: number | null
-          id: string
-          latency: number | null
-          ram: number | null
-          server_id: string | null
-        }
-        Insert: {
-          cpu?: number | null
-          created_at?: string
-          disk?: number | null
-          id?: string
-          latency?: number | null
-          ram?: number | null
-          server_id?: string | null
-        }
-        Update: {
-          cpu?: number | null
-          created_at?: string
-          disk?: number | null
-          id?: string
-          latency?: number | null
-          ram?: number | null
-          server_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "server_metrics_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "servers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      server_actions: {
-        Row: {
-          action: string
-          created_at: string
-          id: string
-          server_id: string | null
-          status: string
-          trace_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          id?: string
-          server_id?: string | null
-          status?: string
-          trace_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          id?: string
-          server_id?: string | null
-          status?: string
-          trace_id?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "server_actions_server_id_fkey"
-            columns: ["server_id"]
-            isOneToOne: false
-            referencedRelation: "servers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ssl_certs: {
-        Row: {
-          created_at: string
-          domain: string
-          expiry: string | null
-          id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          domain: string
-          expiry?: string | null
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          domain?: string
-          expiry?: string | null
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      events: {
-        Row: {
-          created_at: string
-          event_id: string
-          payload: Json
-          status: string
-          trace_id: string | null
-          type: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          event_id?: string
-          payload?: Json
-          status?: string
-          trace_id?: string | null
-          type: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          payload?: Json
-          status?: string
-          trace_id?: string | null
-          type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      queues: {
-        Row: {
-          created_at: string
-          id: string
-          job_data: Json
-          queue_name: string
-          retry_count: number
-          status: string
-          trace_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          job_data?: Json
-          queue_name: string
-          retry_count?: number
-          status?: string
-          trace_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          job_data?: Json
-          queue_name?: string
-          retry_count?: number
-          status?: string
-          trace_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      security_logs: {
-        Row: {
-          action: string
-          anomaly_score: number | null
-          created_at: string
-          device_fingerprint: string | null
-          id: string
-          ip_address: string | null
-          metadata: Json
-          risk_level: string
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          anomaly_score?: number | null
-          created_at?: string
-          device_fingerprint?: string | null
-          id?: string
-          ip_address?: string | null
-          metadata?: Json
-          risk_level?: string
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          anomaly_score?: number | null
-          created_at?: string
-          device_fingerprint?: string | null
-          id?: string
-          ip_address?: string | null
-          metadata?: Json
-          risk_level?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       transactions: {
         Row: {
           amount: number
@@ -5323,64 +4428,6 @@ export type Database = {
       }
     }
     Functions: {
-      archive_audit_logs_older_than: {
-        Args: { p_days?: number; p_limit?: number }
-        Returns: number
-      }
-      audit_create: {
-        Args: {
-          p_action?: Database["public"]["Enums"]["audit_action"] | null
-          p_device?: string | null
-          p_ip_address?: string | null
-          p_module?: string | null
-          p_new_data?: Json | null
-          p_old_data?: Json | null
-          p_record_id?: string | null
-          p_role?: string | null
-          p_status?: string | null
-          p_table_name?: string | null
-        }
-        Returns: string
-      }
-      audit_export: {
-        Args: {
-          p_action?: Database["public"]["Enums"]["audit_action"] | null
-          p_from?: string | null
-          p_limit?: number | null
-          p_q?: string | null
-          p_table_name?: string | null
-          p_to?: string | null
-          p_type?: string | null
-          p_user_id?: string | null
-        }
-        Returns: Database["public"]["Tables"]["audit_logs"]["Row"][]
-      }
-      audit_list: {
-        Args: {
-          p_action?: Database["public"]["Enums"]["audit_action"] | null
-          p_from?: string | null
-          p_page?: number | null
-          p_page_size?: number | null
-          p_q?: string | null
-          p_table_name?: string | null
-          p_to?: string | null
-          p_user_id?: string | null
-        }
-        Returns: Database["public"]["Tables"]["audit_logs"]["Row"][]
-      }
-      audit_search: {
-        Args: { p_limit?: number | null; p_q: string }
-        Returns: Database["public"]["Tables"]["audit_logs"]["Row"][]
-      }
-      audit_stats: {
-        Args: { p_from?: string | null; p_to?: string | null }
-        Returns: {
-          creates: number
-          deletes: number
-          total_logs: number
-          updates: number
-        }[]
-      }
       generate_invoice_number: { Args: never; Returns: string }
       generate_license_key: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
@@ -5395,35 +4442,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      list_audit_logs: {
-        Args: {
-          p_actor_id?: string | null
-          p_before?: string | null
-          p_event_category?: string | null
-          p_event_type?: string | null
-          p_limit?: number | null
-          p_search?: string | null
-          p_target_table?: string | null
-        }
-        Returns: Database["public"]["Tables"]["audit_logs"]["Row"][]
-      }
-      log_audit_event: {
-        Args: {
-          p_action?: Database["public"]["Enums"]["audit_action"] | null
-          p_actor_id?: string | null
-          p_event_category: string
-          p_event_type: string
-          p_ingest_source?: string | null
-          p_ip_address?: string | null
-          p_is_system?: boolean | null
-          p_metadata?: Json | null
-          p_occurred_at?: string | null
-          p_target_id?: string | null
-          p_target_table?: string | null
-          p_user_agent?: string | null
-        }
-        Returns: string
       }
       log_activity: {
         Args: {

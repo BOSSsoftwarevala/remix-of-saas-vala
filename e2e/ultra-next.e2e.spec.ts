@@ -29,7 +29,7 @@ function discoverStaticRoutes(): string[] {
 async function assertPageNotBlank(page: import('@playwright/test').Page) {
   await page.waitForLoadState('domcontentloaded');
   const hasContent = await page.evaluate(() => {
-    const body = document.body;
+    const body = (globalThis as any).document?.body;
     if (!body) return false;
     const text = body.textContent?.trim() || '';
     const visibleChildren = body.querySelectorAll('*').length;
