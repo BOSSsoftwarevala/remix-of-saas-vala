@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { marketplaceApi } from '@/lib/api';
 import { useButtonEngine } from '@/hooks/useButtonEngine';
+import { registerKnownRoutes } from '@/lib/buttonEngine';
 import { currencyApi, geoApi } from '@/lib/api';
 import { DEFAULT_LOCALE, getStoredLocale, storeLocale } from '@/lib/locale';
 import {
