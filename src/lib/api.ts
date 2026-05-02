@@ -219,6 +219,9 @@ async function apiRequest<T = unknown>(
   return pending as Promise<T>;
 }
 
+// Backward-compat alias used throughout the codebase.
+const apiCall = apiRequest;
+
 export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
 export type CrudModule =
   | 'users'
