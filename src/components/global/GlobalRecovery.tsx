@@ -72,7 +72,7 @@ export function GlobalRecovery() {
     window.onunhandledrejection = function (event) {
       const previousResult =
         typeof previousOnUnhandledRejection === 'function'
-          ? previousOnUnhandledRejection(event)
+          ? previousOnUnhandledRejection.call(window, event)
           : undefined;
       const handledByPrevious = previousResult === true;
       const shouldRecover = !handledByPrevious && !event.defaultPrevented;
@@ -108,7 +108,7 @@ type AppErrorBoundaryState = {
 };
 
 export class AppErrorBoundary extends React.Component<React.PropsWithChildren, AppErrorBoundaryState> {
-  private recoverTimer: ReturnType<typeof setTimeout> | null = null;
+  private recoverTimer: ReturnType<typeof window.setTimeout> | null = null;
 
   constructor(props: React.PropsWithChildren) {
     super(props);
