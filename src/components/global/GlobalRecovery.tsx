@@ -47,9 +47,16 @@ function queueRecoveryReload() {
 
 export function GlobalRecovery() {
   useEffect(() => {
-    if (typeof window._lastRender !== 'number') {
+    window._lastRender = performance.now();
+
+    // Heartbeat: keep _lastRender fresh on every animation frame.
+    let rafId = 0;
+    const heartbeat = () => {
       window._lastRender = performance.now();
-    }
+      rafId = window.requestAnimationFrame(heartbeat);
+    };
+    rafId = window.requestAnimationFrame(heartbeat);
+
     const previousOnError = window.onerror;
     const previousOnUnhandledRejection = window.onunhandledrejection;
 
@@ -83,6 +90,7 @@ export function GlobalRecovery() {
     }, WATCHDOG_INTERVAL_MS);
 
     return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
       if (typeof window._recoveryWatchdogId === 'number') {
         window.clearInterval(window._recoveryWatchdogId);
         window._recoveryWatchdogId = undefined;
