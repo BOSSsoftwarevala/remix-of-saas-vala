@@ -298,11 +298,11 @@ function ResellerRoute({ children }: { children: React.ReactNode }) {
       setStatusLoading(true);
       const { data } = await supabase
         .from('resellers')
-        .select('is_active,status')
+        .select('is_active')
         .eq('user_id', user.id)
         .maybeSingle();
       if (mounted) {
-        const suspended = !!data && (data.is_active === false || data.status === 'suspended' || data.status === 'inactive');
+        const suspended = !!data && data.is_active === false;
         setIsSuspended(suspended);
         setStatusLoading(false);
       }

@@ -152,11 +152,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (hasResellerRole) {
           const { data: resellerRow } = await supabase
             .from('resellers')
-            .select('status, is_active')
+            .select('is_active')
             .eq('user_id', userId)
             .maybeSingle();
-          const normalizedStatus = String(resellerRow?.status || (resellerRow?.is_active === false ? 'suspended' : 'active')).toLowerCase();
-          resellerIsActive = normalizedStatus === 'active';
+          resellerIsActive = resellerRow?.is_active !== false;
         }
 
         const resolvedRole: AppRole | null =

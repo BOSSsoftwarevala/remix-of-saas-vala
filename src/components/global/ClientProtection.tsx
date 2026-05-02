@@ -106,10 +106,9 @@ export function ClientProtection() {
       try {
         const { data } = await supabase
           .from("user_sessions")
-          .select("ip_address,last_activity")
+          .select("ip_address,last_active_at")
           .eq("user_id", user.id)
-          .eq("is_active", true)
-          .order("last_activity", { ascending: false })
+          .order("last_active_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
