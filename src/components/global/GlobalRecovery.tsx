@@ -108,7 +108,7 @@ type AppErrorBoundaryState = {
 };
 
 export class AppErrorBoundary extends React.Component<React.PropsWithChildren, AppErrorBoundaryState> {
-  private recoverTimer: ReturnType<typeof window.setTimeout> | null = null;
+  private recoverTimer: number | null = null;
 
   constructor(props: React.PropsWithChildren) {
     super(props);
