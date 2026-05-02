@@ -155,7 +155,7 @@ export const MarketplaceProductCard = React.memo<MarketplaceProductCardProps>(({
       },
     );
 
-    if (!result.ok && !('skipped' in result)) {
+    if (!result.ok && 'error' in result) {
       toast.error(result.error.message || 'Favorite update failed');
     }
   }, [user, runAction, product.id, product.title, toggleFavoriteServer, refreshFavorites]);
@@ -192,7 +192,7 @@ export const MarketplaceProductCard = React.memo<MarketplaceProductCardProps>(({
       },
     );
 
-    if (!result.ok && !('skipped' in result)) {
+    if (!result.ok && 'error' in result) {
       toast.error(result.error.message || 'Cart update failed');
     }
   }, [user, runAction, product, addToCartServer, toggleItem, refreshCart, inCart]);
@@ -247,7 +247,7 @@ export const MarketplaceProductCard = React.memo<MarketplaceProductCardProps>(({
         return { queued: true };
       },
     );
-    if (!result.ok && !('skipped' in result)) {
+    if (!result.ok && 'error' in result) {
       toast.error(result.error.message || 'Unable to continue');
     }
   }, [runAction, onBuyNow, product]);
@@ -312,7 +312,7 @@ export const MarketplaceProductCard = React.memo<MarketplaceProductCardProps>(({
       },
     );
 
-    if (!result.ok && !('skipped' in result)) {
+    if (!result.ok && 'error' in result) {
       const message = result.error.message || 'APK download will be available soon.';
       if (message.includes('Please purchase first')) {
         toast.error(message, { action: { label: 'BUY NOW', onClick: () => { void handleBuyNow(); } } });

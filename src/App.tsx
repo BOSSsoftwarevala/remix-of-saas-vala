@@ -159,7 +159,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       }
 
       const routeProductId = productId || id;
-      let subscriptionQuery = supabase
+      let subscriptionQuery: any = (supabase as any)
         .from('subscriptions')
         .select('status,current_period_end,product_id')
         .eq('user_id', user.id);
@@ -169,7 +169,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       }
 
       const subscriptionPromise = subscriptionQuery.limit(50);
-      let orderQuery = supabase
+      let orderQuery: any = (supabase as any)
         .from('marketplace_orders')
         .select('status,product_id')
         .eq('user_id', user.id)
@@ -177,7 +177,7 @@ function SubscriptionGuard({ children }: { children: React.ReactNode }) {
       if (routeProductId) {
         orderQuery = orderQuery.eq('product_id', routeProductId);
       }
-      let licenseQuery = supabase
+      let licenseQuery: any = (supabase as any)
         .from('license_keys')
         .select('status,expires_at,product_id')
         .eq('created_by', user.id)
@@ -298,11 +298,11 @@ function ResellerRoute({ children }: { children: React.ReactNode }) {
       setStatusLoading(true);
       const { data } = await supabase
         .from('resellers')
-        .select('is_active,status')
+        .select('is_active')
         .eq('user_id', user.id)
         .maybeSingle();
       if (mounted) {
-        const suspended = !!data && (data.is_active === false || data.status === 'suspended' || data.status === 'inactive');
+        const suspended = !!data && data.is_active === false;
         setIsSuspended(suspended);
         setStatusLoading(false);
       }
