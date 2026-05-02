@@ -220,7 +220,12 @@ async function apiRequest<T = unknown>(
 }
 
 // Backward-compat alias used throughout the codebase.
-const apiCall = apiRequest;
+// Typed as `any`-returning to preserve legacy call-site ergonomics.
+const apiCall: (
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  rawPath: string,
+  body?: unknown,
+) => Promise<any> = apiRequest as any;
 
 export type CrudActionType = 'create' | 'read' | 'update' | 'delete';
 export type CrudModule =
