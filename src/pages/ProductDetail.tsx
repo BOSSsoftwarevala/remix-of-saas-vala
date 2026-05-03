@@ -34,9 +34,9 @@ export default function ProductDetail() {
   const [previewMode, setPreviewMode] = useState(false);
 
   const product = useMemo(() => products.find((item) => item.id === id), [products, id]);
-  const productMeta = hasProductMeta(product) ? product : undefined;
+  const productMeta = hasProductMeta(product) ? (product as unknown as { deleted_at?: string | null; expires_at?: string | null; status?: string }) : undefined;
   const isDeleted = Boolean(productMeta?.deleted_at) || String(productMeta?.status || '').toLowerCase() === 'deleted';
-  const isExpired = Boolean(productMeta?.expires_at) && new Date(String(productMeta.expires_at)) <= new Date();
+  const isExpired = Boolean(productMeta?.expires_at) && new Date(String(productMeta?.expires_at)) <= new Date();
   const needsSubscriptionRedirect = !isDeleted && (product?.isAvailable === false || isExpired);
   const refCode = useMemo(() => new URLSearchParams(window.location.search).get('ref') || '', []);
   const trackedPromoRef = useRef('');
@@ -158,9 +158,9 @@ export default function ProductDetail() {
             <Badge variant="outline" className="text-base font-black">${Number(product.price || 0).toFixed(2)}</Badge>
           </div>
 
-          {screenshots.length > 0 && (
+          {hasScreenshots(product) && Array.isArray((product as any).screenshots) && (product as any).screenshots.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              {screenshots.map((shot, idx) => (
+              {((product as any).screenshots as string[]).map((shot, idx) => (
                 <div key={`screenshot-${idx}`} className="overflow-hidden rounded-lg border border-border/40">
                   <img src={shot} alt={`Screenshot ${idx + 1}`} className="w-full h-40 object-cover" loading="lazy" />
                 </div>
@@ -179,7 +179,7 @@ export default function ProductDetail() {
 
           <div className="flex flex-wrap gap-3 pt-2">
             <Button
-              variant={inCart ? 'secondary' : 'outline'}
+              variant={isInCart(product.id) ? 'secondary' : 'outline'}
               className={getButtonInteractionClassName()}
               {...createPressHandlers(`product-detail-cart-${product.id}`, () => {
                 void executeButtonAction<void>({
@@ -193,7 +193,7 @@ export default function ProductDetail() {
                       price: product.price,
                       category: product.category || 'Software',
                     });
-                    if (!inCart && user) {
+                    if (!isInCart(product.id) && user) {
                       await addToCartServer(product.id, 1);
                     }
                   },
@@ -203,7 +203,7 @@ export default function ProductDetail() {
               })}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
-              {inCart ? 'Remove from Cart' : 'Add to Cart'}
+              {isInCart(product.id) ? 'Remove from Cart' : 'Add to Cart'}
             </Button>
             <Button className={getButtonInteractionClassName()} {...createPressHandlers(`product-detail-buy-${product.id}`, handleBuyNow)}>
               <CreditCard className="h-4 w-4 mr-2" /> Buy Now
@@ -211,10 +211,10 @@ export default function ProductDetail() {
             <Button variant="secondary" className={getButtonInteractionClassName()} {...createPressHandlers(`product-detail-download-${product.id}`, () => { void handleDownload(); })} disabled={!product.apk_enabled}>
               <Download className="h-4 w-4 mr-2" /> Download APK
             </Button>
-            {!!product.demo_url && (
+            {!!product.demoUrl && (
               <Button variant="outline" className={getButtonInteractionClassName()} {...createPressHandlers(`product-detail-demo-${product.id}`, () => {
-                if (!product.demo_url) return;
-                window.open(product.demo_url, '_blank', 'noopener,noreferrer');
+                if (!product.demoUrl) return;
+                window.open(product.demoUrl, '_blank', 'noopener,noreferrer');
               })}>
                 <PlayCircle className="h-4 w-4 mr-2" /> Live Demo
               </Button>

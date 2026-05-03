@@ -252,7 +252,7 @@ export default function Settings() {
               Notifications
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Settings className="h-4 w-4" />
+              <Settings />
               Appearance
             </TabsTrigger>
           </TabsList>
