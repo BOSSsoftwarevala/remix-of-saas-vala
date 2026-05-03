@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { marketplaceApi } from '@/lib/api';
 import { useButtonEngine } from '@/hooks/useButtonEngine';
-import { registerKnownRoutes } from '@/lib/buttonEngine';
+import { registerKnownRoutes, executeButtonAction } from '@/lib/buttonEngine';
 import { currencyApi, geoApi } from '@/lib/api';
 import { DEFAULT_LOCALE, getStoredLocale, storeLocale } from '@/lib/locale';
 import {
@@ -218,8 +218,8 @@ export default function Marketplace() {
     );
     if (actionResult.ok) {
       toast.success('🎉 Payment successful!');
-    } else if (!actionResult.skipped) {
-      toast.error(actionResult.error?.message || 'Payment failed');
+    } else if (!('skipped' in actionResult)) {
+      toast.error((actionResult as { error?: Error }).error?.message || 'Payment failed');
     }
     paymentLockRef.current = false;
     setPaymentSubmitting(false);
@@ -270,8 +270,8 @@ export default function Marketplace() {
     );
     if (actionResult.ok) {
       toast.success('🎉 Payment successful!');
-    } else if (!actionResult.skipped) {
-      toast.error(actionResult.error?.message || 'Submission failed');
+    } else if (!('skipped' in actionResult)) {
+      toast.error((actionResult as { error?: Error }).error?.message || 'Submission failed');
     }
     paymentLockRef.current = false;
     setPaymentSubmitting(false);

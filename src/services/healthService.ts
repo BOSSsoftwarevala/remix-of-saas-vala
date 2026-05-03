@@ -36,7 +36,7 @@ export function healthService(pollIntervalMs = HEALTH_POLL_INTERVAL_MS) {
     start() {
       this.stop();
       void poll();
-      timer = window.setInterval(() => {
+      timer = setInterval(() => {
         void poll();
       }, pollIntervalMs);
     },

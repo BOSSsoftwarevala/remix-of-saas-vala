@@ -87,7 +87,7 @@ export function useProducts() {
       await fetchProducts();
       return res.data;
     } catch (e: any) {
-      const { data, error } = await supabase.from('products').insert(product as Record<string, unknown>).select().single();
+      const { data, error } = await (supabase.from('products') as any).insert(product as Record<string, unknown>).select().single();
       if (error) {
         toast.error('Failed to create product');
         throw e;

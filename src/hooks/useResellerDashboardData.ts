@@ -81,6 +81,7 @@ export function useResellerDashboardData() {
 
       setResellerId(reseller.id);
 
+      const sb = supabase as any;
       const [
         walletRes,
         keysCountRes,
@@ -89,27 +90,27 @@ export function useResellerDashboardData() {
         referralRes,
         commissionRes,
       ] = await Promise.all([
-        supabase.from('wallets').select('balance').eq('user_id', user.id).maybeSingle(),
-        supabase
+        sb.from('wallets').select('balance').eq('user_id', user.id).maybeSingle(),
+        sb
           .from('license_keys')
           .select('*', { count: 'exact', head: true })
           .eq('created_by', user.id),
-        supabase
+        sb
           .from('marketplace_payouts')
           .select('amount')
           .eq('seller_id', user.id)
           .in('status', ['pending', 'processing']),
-        supabase
+        sb
           .from('reseller_clients')
           .select('id, client_name, client_email, client_phone, purchase_count, total_spent, last_purchase_at, status')
           .eq('reseller_id', reseller.id)
           .order('updated_at', { ascending: false }),
-        supabase
+        sb
           .from('referral_codes')
           .select('id, code, status, commission_earned, signup_at, purchase_at, referred_user_id')
           .eq('reseller_id', reseller.id)
           .order('created_at', { ascending: false }),
-        supabase
+        sb
           .from('reseller_commission_logs')
           .select('amount')
           .eq('reseller_id', reseller.id),

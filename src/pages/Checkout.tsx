@@ -147,7 +147,7 @@ export default function Checkout() {
     const idempotencyKey = makeIdempotencyKey();
 
     try {
-      const result = await purchaseApk(selected, {
+      const result = await purchaseApk(selected as any, {
         paymentMethod,
         idempotencyKey,
         amountOverride: finalPayable,

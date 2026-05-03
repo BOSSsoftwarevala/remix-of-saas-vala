@@ -152,11 +152,12 @@ export function useAutomation() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     
+    const sb = supabase as any;
     const [requestsRes, queueRes, billingRes, backlinksRes] = await Promise.all([
-      supabase.from('client_requests').select('*').order('created_at', { ascending: false }).limit(50),
-      supabase.from('build_queue').select('*').order('created_at', { ascending: false }).limit(50),
-      supabase.from('billing_items').select('*').order('created_at', { ascending: false }).limit(100),
-      supabase.from('seo_backlinks').select('*').order('created_at', { ascending: false }).limit(100)
+      sb.from('client_requests').select('*').order('created_at', { ascending: false }).limit(50),
+      sb.from('build_queue').select('*').order('created_at', { ascending: false }).limit(50),
+      sb.from('billing_items').select('*').order('created_at', { ascending: false }).limit(100),
+      sb.from('seo_backlinks').select('*').order('created_at', { ascending: false }).limit(100)
     ]);
 
     if (requestsRes.data) setClientRequests(requestsRes.data as ClientRequest[]);
@@ -185,7 +186,7 @@ export function useAutomation() {
     
     try {
       // Insert request
-      const { data: newRequest, error } = await supabase
+      const { data: newRequest, error } = await (supabase as any)
         .from('client_requests')
         .insert({
           name: request.name,
@@ -433,7 +434,7 @@ export function useAutomation() {
       }
 
       if (!alerts.length) {
-        const { data: billingData } = await supabase
+        const { data: billingData } = await (supabase as any)
           .from('billing_items')
           .select('id,user_id,service_name,amount,billing_cycle,status,due_date')
           .order('created_at', { ascending: false })
@@ -489,7 +490,7 @@ export function useAutomation() {
       const dueDate = item.due_date ? parseToIsoString(item.due_date) : dueDateFromCycle(item.billing_cycle);
       const recentIso = new Date(Date.now() - BILLING_DUPLICATE_DETECTION_WINDOW_MS).toISOString();
 
-      let billingLookup = supabase
+      let billingLookup = (supabase as any)
         .from('billing_items')
         .select('id,user_id,service_name,amount,billing_cycle,status,due_date,created_at')
         .eq('service_name', item.service_name)
@@ -502,7 +503,7 @@ export function useAutomation() {
 
       let createdBilling = existingBilling;
       if (!createdBilling) {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('billing_items')
           .insert({
             user_id: item.user_id ?? null,
@@ -803,7 +804,7 @@ export function useAutomation() {
 
       await supabase.from('invoices').update({ status: 'paid' }).eq('id', payload.invoice_id);
       if (payload.billing_id) {
-        await supabase.from('billing_items').update({ status: 'paid' }).eq('id', payload.billing_id);
+        await (supabase as any).from('billing_items').update({ status: 'paid' }).eq('id', payload.billing_id);
       }
 
       await notifyUsers(
