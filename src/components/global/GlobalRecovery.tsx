@@ -34,6 +34,11 @@ function showRecoveryMessage() {
 
 function queueRecoveryReload() {
   if (window._recoveryReloadQueued) return;
+  // Disable auto-reload in preview/dev hosts — transient API errors like
+  // "Bearer token required" should NOT trigger a full page recovery loop
+  // that hides the UI behind a black overlay.
+  const isPreview = /lovableproject\.com|lovable\.app|localhost/.test(window.location.hostname);
+  if (isPreview) return;
   window._recoveryReloadQueued = true;
   if (typeof window._recoveryWatchdogId === 'number') {
     window.clearInterval(window._recoveryWatchdogId);

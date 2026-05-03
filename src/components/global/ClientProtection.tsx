@@ -70,6 +70,16 @@ export function ClientProtection() {
     if (hasTouchSupport) {
       return;
     }
+    // Skip devtools heuristic when running inside an iframe (Lovable preview,
+    // embedded dashboards) — outerWidth/innerWidth diffs are unreliable there
+    // and produce false positives that block the entire UI.
+    const inIframe = (() => {
+      try { return window.self !== window.top; } catch { return true; }
+    })();
+    const isLovableHost = /lovableproject\.com|lovable\.app|localhost/.test(window.location.hostname);
+    if (inIframe || isLovableHost) {
+      return;
+    }
 
     let consecutiveOpenDetections = 0;
     const intervalId = window.setInterval(() => {
