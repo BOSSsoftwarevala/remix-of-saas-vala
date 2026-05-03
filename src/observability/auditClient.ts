@@ -95,7 +95,7 @@ export async function writeAuditEvent(input: AuditWriteInput): Promise<string | 
       p_occurred_at: input.occurredAt ?? new Date().toISOString(),
     };
 
-    const { data, error } = await supabase.rpc('log_audit_event', payload);
+    const { data, error } = await (supabase.rpc as any)('log_audit_event', payload);
     if (error) {
       console.error('Failed to write audit event', error);
       return null;
@@ -105,7 +105,7 @@ export async function writeAuditEvent(input: AuditWriteInput): Promise<string | 
 }
 
 export async function listAuditLogs(input: AuditListInput = {}) {
-  return supabase.rpc('list_audit_logs', {
+  return (supabase.rpc as any)('list_audit_logs', {
     p_limit: input.limit ?? 100,
     p_before: input.before ?? null,
     p_event_category: input.eventCategory ?? null,
@@ -117,7 +117,7 @@ export async function listAuditLogs(input: AuditListInput = {}) {
 }
 
 export async function listAuditLogsApi(input: AuditListApiInput = {}) {
-  return supabase.rpc('audit_list', {
+  return (supabase.rpc as any)('audit_list', {
     p_table_name: input.tableName ?? null,
     p_action: input.action ?? null,
     p_user_id: input.userId ?? null,
@@ -130,14 +130,14 @@ export async function listAuditLogsApi(input: AuditListApiInput = {}) {
 }
 
 export async function searchAuditLogs(query: string, limit = 100) {
-  return supabase.rpc('audit_search', {
+  return (supabase.rpc as any)('audit_search', {
     p_q: query,
     p_limit: limit,
   });
 }
 
 export async function getAuditStats(from?: string | null, to?: string | null) {
-  return supabase.rpc('audit_stats', {
+  return (supabase.rpc as any)('audit_stats', {
     p_from: from ?? null,
     p_to: to ?? null,
   });
@@ -148,7 +148,7 @@ export async function exportAuditLogs(
   filters: Omit<AuditListApiInput, 'page' | 'pageSize'> = {},
   limit = 5000,
 ) {
-  return supabase.rpc('audit_export', {
+  return (supabase.rpc as any)('audit_export', {
     p_type: type,
     p_table_name: filters.tableName ?? null,
     p_action: filters.action ?? null,
@@ -163,7 +163,7 @@ export async function exportAuditLogs(
 export async function createManualAuditLog(input: AuditCreateInput = {}) {
   // Device is best-effort client context; SSR/non-browser environments intentionally send null.
   const device = input.device ?? (typeof navigator !== 'undefined' ? navigator.userAgent : null);
-  return supabase.rpc('audit_create', {
+  return (supabase.rpc as any)('audit_create', {
     p_role: input.role ?? 'system',
     p_action: input.action ?? 'read',
     p_module: input.module ?? input.tableName ?? 'system',
