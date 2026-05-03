@@ -20,6 +20,7 @@ import {
   Save,
   Loader2,
   Upload,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -252,7 +253,7 @@ export default function Settings() {
               Notifications
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Settings />
+              <SettingsIcon className="h-4 w-4" />
               Appearance
             </TabsTrigger>
           </TabsList>
