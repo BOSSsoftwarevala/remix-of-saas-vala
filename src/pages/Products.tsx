@@ -109,6 +109,7 @@ export default function Products() {
   const { products, categories, loading, createProduct, updateProduct, deleteProduct, suspendProduct, activateProduct } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -138,7 +139,8 @@ export default function Products() {
     const q = searchQuery.toLowerCase();
     const matchesSearch = name.includes(q) || slug.includes(q);
     const matchesTab = activeTab === 'all' || product.status === activeTab;
-    return matchesSearch && matchesTab;
+    const matchesCategory = categoryFilter === 'all' || product.category_id === categoryFilter;
+    return matchesSearch && matchesTab && matchesCategory;
   });
 
   const stats = {
