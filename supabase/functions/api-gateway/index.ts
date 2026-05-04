@@ -659,8 +659,7 @@ async function emitDomainEvent(
       status: 'queued',
       tenant_id: tenantId || null,
     })
-
-    }
+    const eventTypeMap: Record<string, string[]> = {}
     const mappedEventTypes = eventTypeMap[eventType] || []
     if (!mappedEventTypes.length) return
     const { data: webhookEndpoints } = await admin
