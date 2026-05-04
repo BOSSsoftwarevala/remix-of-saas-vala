@@ -361,9 +361,20 @@ export default function Products() {
                   className="pl-10 bg-muted/50 border-border"
                 />
               </div>
-              <Button variant="outline" size="icon" className="border-border">
-                <Filter className="h-4 w-4" />
-              </Button>
+              {categories.length > 0 && (
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[160px] bg-muted/50 border-border">
+                    <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         </div>
