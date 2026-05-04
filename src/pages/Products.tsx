@@ -58,6 +58,9 @@ import {
   Store,
   ExternalLink,
   CheckCircle2,
+  TrendingUp,
+  Activity,
+  CircleDot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -130,10 +133,20 @@ export default function Products() {
   });
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const name = (product.name || '').toLowerCase();
+    const slug = (product.slug || '').toLowerCase();
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = name.includes(q) || slug.includes(q);
     const matchesTab = activeTab === 'all' || product.status === activeTab;
     return matchesSearch && matchesTab;
   });
+
+  const stats = {
+    total: products.length,
+    active: products.filter((p) => p.status === 'active').length,
+    draft: products.filter((p) => p.status === 'draft').length,
+    listed: products.filter((p) => p.marketplace_visible).length,
+  };
 
   const openCreateDialog = () => {
     setEditProduct(null);
@@ -293,6 +306,29 @@ export default function Products() {
           </div>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Products', value: stats.total, icon: Package, color: 'text-primary', bg: 'bg-primary/10' },
+            { label: 'Active', value: stats.active, icon: CircleDot, color: 'text-success', bg: 'bg-success/10' },
+            { label: 'Drafts', value: stats.draft, icon: Activity, color: 'text-warning', bg: 'bg-warning/10' },
+            { label: 'Marketplace Listed', value: stats.listed, icon: TrendingUp, color: 'text-primary', bg: 'bg-primary/10' },
+          ].map((card) => (
+            <div
+              key={card.label}
+              className="glass-card rounded-xl p-4 flex items-center gap-3 transition-all hover:border-primary/40 hover:shadow-md"
+            >
+              <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center shrink-0', card.bg)}>
+                <card.icon className={cn('h-5 w-5', card.color)} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground truncate">{card.label}</p>
+                <p className="text-xl font-bold text-foreground leading-tight">{card.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Filters */}
         <div className="glass-card rounded-xl p-4">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -302,10 +338,10 @@ export default function Products() {
                   All ({products.length})
                 </TabsTrigger>
                 <TabsTrigger value="active" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  Active
+                  Active ({stats.active})
                 </TabsTrigger>
                 <TabsTrigger value="draft" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  Draft
+                  Draft ({stats.draft})
                 </TabsTrigger>
                 <TabsTrigger value="suspended" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   Suspended
@@ -368,7 +404,11 @@ export default function Products() {
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
-                    <TableRow key={product.id} className="border-border hover:bg-muted/30">
+                    <TableRow
+                      key={product.id}
+                      className="border-border hover:bg-muted/40 cursor-pointer transition-colors"
+                      onClick={() => openEditDialog(product)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
@@ -413,7 +453,7 @@ export default function Products() {
                           {product.deploy_status || 'idle'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -424,7 +464,7 @@ export default function Products() {
                           {product.marketplace_visible ? 'Listed' : 'Hidden'}
                         </Button>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
