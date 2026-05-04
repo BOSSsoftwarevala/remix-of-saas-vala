@@ -659,8 +659,7 @@ async function emitDomainEvent(
       status: 'queued',
       tenant_id: tenantId || null,
     })
-
-    }
+    const eventTypeMap: Record<string, string[]> = {}
     const mappedEventTypes = eventTypeMap[eventType] || []
     if (!mappedEventTypes.length) return
     const { data: webhookEndpoints } = await admin
@@ -9555,7 +9554,8 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
     })
   }
 
-
+  // GET /builder/status/:project_id
+  if (method === 'GET' && pathParts[0] === 'status') {
     const projectId = String(pathParts[1] || '').trim()
     const projectQuery = admin.from('projects').select('*')
     if (projectId) projectQuery.eq('id', projectId)
@@ -10739,9 +10739,6 @@ async function handleSeoLeads(method: string, pathParts: string[], body: any, us
     })
   }
 
-
-  }
-
   return err('Not found', 404)
 }
 
@@ -11916,7 +11913,11 @@ Deno.serve(async (req) => {
     if (!SUPPORTED_API_VERSIONS.has(requestedVersion)) {
       return fail('Unsupported API version', 400, 'UNSUPPORTED_API_VERSION', { supported: Array.from(SUPPORTED_API_VERSIONS) })
     }
-    const normalizedPath = fullPath
+    // Strip the `api/v1/` (or any supported version) prefix so module routing
+    // sees `product/list` instead of `api`.
+    const normalizedPath = versionMatch
+      ? fullPath.slice(versionMatch[0].length).replace(/^\/+/, '')
+      : fullPath
 
     const parts = normalizedPath.split('/').filter(Boolean)
     const rawModule = parts[0]
