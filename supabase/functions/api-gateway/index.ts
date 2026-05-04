@@ -10739,9 +10739,6 @@ async function handleSeoLeads(method: string, pathParts: string[], body: any, us
     })
   }
 
-
-  }
-
   return err('Not found', 404)
 }
 
