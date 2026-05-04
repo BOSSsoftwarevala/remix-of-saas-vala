@@ -9554,7 +9554,8 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
     })
   }
 
-
+  // GET /builder/status/:project_id
+  if (method === 'GET' && pathParts[0] === 'status') {
     const projectId = String(pathParts[1] || '').trim()
     const projectQuery = admin.from('projects').select('*')
     if (projectId) projectQuery.eq('id', projectId)
