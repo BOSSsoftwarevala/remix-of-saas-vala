@@ -534,11 +534,13 @@ export default function Products() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             <DialogDescription>
-              {editProduct ? 'Update product details' : 'Create a new product in your catalog'}
+              {editProduct
+                ? 'Quick edit. For full options (media, SEO, license, demo), use the Add Product page.'
+                : 'Quick create. For full options, use the Add Product page.'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
