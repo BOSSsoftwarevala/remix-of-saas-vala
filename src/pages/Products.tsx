@@ -109,6 +109,7 @@ export default function Products() {
   const { products, categories, loading, createProduct, updateProduct, deleteProduct, suspendProduct, activateProduct } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -138,7 +139,8 @@ export default function Products() {
     const q = searchQuery.toLowerCase();
     const matchesSearch = name.includes(q) || slug.includes(q);
     const matchesTab = activeTab === 'all' || product.status === activeTab;
-    return matchesSearch && matchesTab;
+    const matchesCategory = categoryFilter === 'all' || product.category_id === categoryFilter;
+    return matchesSearch && matchesTab && matchesCategory;
   });
 
   const stats = {
@@ -359,9 +361,20 @@ export default function Products() {
                   className="pl-10 bg-muted/50 border-border"
                 />
               </div>
-              <Button variant="outline" size="icon" className="border-border">
-                <Filter className="h-4 w-4" />
-              </Button>
+              {categories.length > 0 && (
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[160px] bg-muted/50 border-border">
+                    <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         </div>
@@ -457,7 +470,12 @@ export default function Products() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 gap-1 text-xs"
+                          className={cn(
+                            'h-7 gap-1 text-xs transition-colors',
+                            product.marketplace_visible
+                              ? 'bg-success/10 text-success hover:bg-success/20'
+                              : 'hover:bg-muted'
+                          )}
                           onClick={() => toggleMarketplace(product)}
                         >
                           <Store className={cn('h-3 w-3', product.marketplace_visible ? 'text-success' : 'text-muted-foreground')} />
@@ -521,11 +539,13 @@ export default function Products() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             <DialogDescription>
-              {editProduct ? 'Update product details' : 'Create a new product in your catalog'}
+              {editProduct
+                ? 'Quick edit. For full options (media, SEO, license, demo), use the Add Product page.'
+                : 'Quick create. For full options, use the Add Product page.'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -603,6 +623,13 @@ export default function Products() {
             </div>
           </div>
           <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => { setDialogOpen(false); navigate('/admin/add-product'); }}
+              className="mr-auto text-primary hover:bg-primary/10"
+            >
+              Open Full Editor →
+            </Button>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting || !formData.name.trim()}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
