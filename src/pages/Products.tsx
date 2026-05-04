@@ -470,7 +470,12 @@ export default function Products() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 gap-1 text-xs"
+                          className={cn(
+                            'h-7 gap-1 text-xs transition-colors',
+                            product.marketplace_visible
+                              ? 'bg-success/10 text-success hover:bg-success/20'
+                              : 'hover:bg-muted'
+                          )}
                           onClick={() => toggleMarketplace(product)}
                         >
                           <Store className={cn('h-3 w-3', product.marketplace_visible ? 'text-success' : 'text-muted-foreground')} />
