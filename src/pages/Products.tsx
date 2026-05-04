@@ -623,6 +623,13 @@ export default function Products() {
             </div>
           </div>
           <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => { setDialogOpen(false); navigate('/admin/add-product'); }}
+              className="mr-auto text-primary hover:bg-primary/10"
+            >
+              Open Full Editor →
+            </Button>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSubmit} disabled={submitting || !formData.name.trim()}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
