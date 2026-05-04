@@ -11916,7 +11916,11 @@ Deno.serve(async (req) => {
     if (!SUPPORTED_API_VERSIONS.has(requestedVersion)) {
       return fail('Unsupported API version', 400, 'UNSUPPORTED_API_VERSION', { supported: Array.from(SUPPORTED_API_VERSIONS) })
     }
-    const normalizedPath = fullPath
+    // Strip the `api/v1/` (or any supported version) prefix so module routing
+    // sees `product/list` instead of `api`.
+    const normalizedPath = versionMatch
+      ? fullPath.slice(versionMatch[0].length).replace(/^\/+/, '')
+      : fullPath
 
     const parts = normalizedPath.split('/').filter(Boolean)
     const rawModule = parts[0]
