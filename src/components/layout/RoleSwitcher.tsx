@@ -53,7 +53,7 @@ export function RoleSwitcher() {
     void writeAuditEvent({
       eventCategory: 'AUTH',
       eventType: 'role_switch',
-      action: 'view_as',
+      action: 'login',
       actorId: user?.id ?? null,
       targetTable: 'user_roles',
       targetId: user?.id ?? null,
@@ -71,7 +71,7 @@ export function RoleSwitcher() {
     void writeAuditEvent({
       eventCategory: 'AUTH',
       eventType: 'role_switch_exit',
-      action: 'view_as_exit',
+      action: 'logout',
       actorId: user?.id ?? null,
       targetTable: 'user_roles',
       targetId: user?.id ?? null,
