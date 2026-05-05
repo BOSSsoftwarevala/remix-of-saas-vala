@@ -17,6 +17,7 @@ import { WalletHeaderButton } from '@/components/wallet/WalletHeaderButton';
 import { useCart } from '@/hooks/useCart';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
+import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 
 const pageTitles: Record<string, string> = {
   '/': 'Marketplace',
@@ -141,6 +142,9 @@ export function Header() {
         </Button>
 
         <WalletHeaderButton />
+
+        {/* Super Admin: switch dashboard role view */}
+        <RoleSwitcher />
 
         {/* Notifications */}
         <Button
