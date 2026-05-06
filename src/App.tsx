@@ -458,8 +458,10 @@ function ServerRouteGuarded({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { user } = useAuth();
-  const setupDone = user?.id ? localStorage.getItem(`sv_onboarding_done_${user.id}`) === '1' : true;
+  const { user, isSuperAdmin } = useAuth();
+  const setupDone = user?.id
+    ? isSuperAdmin || localStorage.getItem(`sv_onboarding_done_${user.id}`) === '1'
+    : true;
 
   useEffect(() => {
     registerRoutePatterns(APP_ROUTE_PATTERNS);
