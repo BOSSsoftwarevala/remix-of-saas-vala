@@ -18,10 +18,12 @@ const ROLE_OVERRIDE_KEY = 'sv_role_override';
 type RoleEntry = { value: string; label: string; route: string };
 
 const ROLE_MAP: RoleEntry[] = [
-  { value: 'super_admin', label: 'Super Admin', route: '/dashboard' },
-  { value: 'admin', label: 'Admin (Manager)', route: '/dashboard' },
-  { value: 'reseller', label: 'Reseller', route: '/reseller-dashboard' },
-  { value: 'user', label: 'User / Customer', route: '/marketplace' },
+  { value: 'product_manager', label: 'Product Manager', route: '/products' },
+  { value: 'server_manager', label: 'Server Manager', route: '/servers' },
+  { value: 'user_dashboard', label: 'User Dashboard', route: '/marketplace' },
+  { value: 'reseller_manager', label: 'Reseller Manager', route: '/reseller-manager' },
+  { value: 'reseller_user', label: 'Reseller User Dashboard', route: '/reseller-dashboard' },
+  { value: 'seo_lead_manager', label: 'SEO & Lead Manager', route: '/seo-leads' },
 ];
 
 export function getRoleOverride(): string | null {
@@ -87,12 +89,12 @@ export function RoleSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-8 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+          className="h-8 gap-1.5 text-xs font-semibold border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
         >
           <Eye className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">
+          <span className="inline">
             {current ? `Viewing: ${current.label}` : 'View as Role'}
           </span>
           <ChevronDown className="h-3 w-3 opacity-60" />
