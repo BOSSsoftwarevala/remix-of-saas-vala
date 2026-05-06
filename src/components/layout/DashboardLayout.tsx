@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { RoleViewBanner } from './RoleViewBanner';
 import { useSidebarState } from '@/hooks/useSidebarState';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
       >
         <Header />
+        <RoleViewBanner />
         <main className="min-h-[calc(100vh-3.5rem)] p-4 md:p-6">
           {children}
         </main>
