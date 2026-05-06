@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,24 +10,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { writeAuditEvent } from '@/observability/auditClient';
-
-const ROLE_OVERRIDE_KEY = 'sv_role_override';
-
-type RoleEntry = { value: string; label: string; route: string };
-
-const ROLE_MAP: RoleEntry[] = [
-  { value: 'product_manager', label: 'Product Manager', route: '/products' },
-  { value: 'server_manager', label: 'Server Manager', route: '/servers' },
-  { value: 'user_dashboard', label: 'User Dashboard', route: '/marketplace' },
-  { value: 'reseller_manager', label: 'Reseller Manager', route: '/reseller-manager' },
-  { value: 'reseller_user', label: 'Reseller User Dashboard', route: '/reseller-dashboard' },
-  { value: 'seo_lead_manager', label: 'SEO & Lead Manager', route: '/seo-leads' },
-];
+import { ROLE_LIST, useRoleView, type RoleConfig } from '@/contexts/RoleViewContext';
 
 export function getRoleOverride(): string | null {
   try {
-    return sessionStorage.getItem(ROLE_OVERRIDE_KEY);
+    return sessionStorage.getItem('sv_role_override');
   } catch {
     return null;
   }
@@ -36,54 +22,22 @@ export function getRoleOverride(): string | null {
 
 export function RoleSwitcher() {
   const navigate = useNavigate();
-  const { isSuperAdmin, user } = useAuth();
-  const [override, setOverride] = useState<string | null>(getRoleOverride());
-
-  useEffect(() => {
-    const onStorage = () => setOverride(getRoleOverride());
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  const { isSuperAdmin } = useAuth();
+  const { override, setOverride } = useRoleView();
 
   if (!isSuperAdmin) return null;
 
-  const switchTo = (entry: RoleEntry) => {
-    try {
-      sessionStorage.setItem(ROLE_OVERRIDE_KEY, entry.value);
-    } catch {}
-    setOverride(entry.value);
-    void writeAuditEvent({
-      eventCategory: 'AUTH',
-      eventType: 'role_switch',
-      action: 'login',
-      actorId: user?.id ?? null,
-      targetTable: 'user_roles',
-      targetId: user?.id ?? null,
-      metadata: { role: entry.value, route: entry.route },
-      ingestSource: 'role_switcher',
-    });
-    navigate(entry.route);
+  const switchTo = (entry: RoleConfig) => {
+    setOverride(entry.key);
+    navigate(entry.landing);
   };
 
   const exitOverride = () => {
-    try {
-      sessionStorage.removeItem(ROLE_OVERRIDE_KEY);
-    } catch {}
     setOverride(null);
-    void writeAuditEvent({
-      eventCategory: 'AUTH',
-      eventType: 'role_switch_exit',
-      action: 'logout',
-      actorId: user?.id ?? null,
-      targetTable: 'user_roles',
-      targetId: user?.id ?? null,
-      metadata: {},
-      ingestSource: 'role_switcher',
-    });
     navigate('/dashboard');
   };
 
-  const current = ROLE_MAP.find((r) => r.value === override);
+  const current = ROLE_LIST.find((r) => r.key === override);
 
   return (
     <DropdownMenu>
@@ -103,14 +57,14 @@ export function RoleSwitcher() {
       <DropdownMenuContent align="end" sideOffset={8} className="w-56 bg-popover/95 backdrop-blur-xl border-border/40">
         <DropdownMenuLabel className="text-xs">Switch dashboard view</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/30" />
-        {ROLE_MAP.map((entry) => (
+        {ROLE_LIST.map((entry) => (
           <DropdownMenuItem
-            key={entry.value}
+            key={entry.key}
             className="cursor-pointer text-sm py-2"
             onClick={() => switchTo(entry)}
           >
             <span className="flex-1">{entry.label}</span>
-            {override === entry.value && (
+            {override === entry.key && (
               <span className="text-[10px] text-primary font-semibold">ACTIVE</span>
             )}
           </DropdownMenuItem>
