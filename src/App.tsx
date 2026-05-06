@@ -725,13 +725,15 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <CartProvider>
-              <SidebarProvider>
-                <ClientProtection />
-                <AppRoutes />
-                <OfflineRetryBanner />
-              </SidebarProvider>
-            </CartProvider>
+            <RoleViewProvider>
+              <CartProvider>
+                <SidebarProvider>
+                  <ClientProtection />
+                  <AppRoutes />
+                  <OfflineRetryBanner />
+                </SidebarProvider>
+              </CartProvider>
+            </RoleViewProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
