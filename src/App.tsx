@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { RoleViewProvider } from "@/contexts/RoleViewContext";
 import { SidebarProvider } from "@/hooks/useSidebarState";
 import { CartProvider } from "@/hooks/useCart";
 import { Loader2 } from "lucide-react";
