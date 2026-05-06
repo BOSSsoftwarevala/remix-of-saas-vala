@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useSidebarState } from '@/hooks/useSidebarState';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useRoleView } from '@/contexts/RoleViewContext';
 import {
   LayoutDashboard,
   Package,
@@ -94,15 +95,19 @@ export function Sidebar() {
   const { collapsed, toggle } = useSidebarState();
   const location = useLocation();
   const { isSuperAdmin, signOut } = useAuth();
+  const { config: roleConfig, isSimulating } = useRoleView();
 
   const isItemActive = (item: NavItem) => {
     const paths = item.activePaths ?? [item.href];
     return paths.includes(location.pathname);
   };
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.adminOnly || isSuperAdmin
-  );
+  const filteredNavItems = navItems.filter((item) => {
+    if (isSimulating && roleConfig) {
+      return roleConfig.allowedHrefs.includes(item.href);
+    }
+    return !item.adminOnly || isSuperAdmin;
+  });
 
   // Group by section
   const sections = filteredNavItems.reduce<Record<string, NavItem[]>>((acc, item) => {
