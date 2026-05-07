@@ -110,12 +110,19 @@ export function Sidebar() {
   });
 
   // Group by section
-  const sections = filteredNavItems.reduce<Record<string, NavItem[]>>((acc, item) => {
+  const grouped = filteredNavItems.reduce<Record<string, NavItem[]>>((acc, item) => {
     const section = item.section || 'core';
     if (!acc[section]) acc[section] = [];
     acc[section].push(item);
     return acc;
   }, {});
+
+  // Apply role-specific section ordering when simulating.
+  const sectionOrder =
+    isSimulating && roleConfig
+      ? roleConfig.sections.filter((s) => grouped[s]?.length)
+      : Object.keys(grouped);
+  const sections: Array<[string, NavItem[]]> = sectionOrder.map((s) => [s, grouped[s] || []]);
 
   return (
     <aside
@@ -174,7 +181,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5 scrollbar-none">
-          {Object.entries(sections).map(([section, items]) => (
+          {sections.map(([section, items]) => (
             <div key={section}>
               {/* Section label */}
               {!collapsed && (
