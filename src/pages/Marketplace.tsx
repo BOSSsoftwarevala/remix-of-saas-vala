@@ -195,12 +195,42 @@ export default function Marketplace() {
   useEffect(() => {
     const cat = (searchParams.get('cat') || '').trim().toLowerCase();
     if (!cat) return;
-    const allowedCategories = new Set(['all', 'ai', 'seo', 'apk', 'finance', 'education']);
+    // Dynamically build allowed categories from MARKETPLACE_CATEGORIES
+    const allowedCategories = new Set(['all', ...MARKETPLACE_CATEGORIES.map(c => c.id)]);
     setCategoryFilter(allowedCategories.has(cat) ? cat : 'all');
   }, [searchParams]);
 
+  /**
+   * FIX #1: IMPLEMENT handleBuyNow() - Was previously empty!
+   * This is called when user clicks "Buy Now" on any product card
+   */
   const handleBuyNow = async (product: Product) => {
+    // 1. Check if user is authenticated
+    if (!user) {
+      toast.info('Login to purchase');
+      navigate('/auth');
+      return;
+    }
 
+    // 2. Run fraud detection check
+    try {
+      await checkUserStatus(user.id);
+    } catch (e) {
+      toast.error('Cannot process: Account flagged for suspicious activity');
+      return;
+    }
+
+    // 3. Setup payment dialog state
+    setSelectedProduct(product);
+    setPaymentSuccess(false);
+    setGeneratedLicenseKey('');
+    setDownloadUrl('');
+    setManualTxnRef('');
+    setShowMorePayment(false);
+    setBuyPayMethod('wallet');
+
+    // 4. Show payment dialog
+    setShowPayment(true);
   };
 
   const handleWalletPayment = async () => {
@@ -363,6 +393,15 @@ export default function Marketplace() {
       .slice(0, 30);
   }, [filteredProducts]);
 
+  /**
+   * FIX #2: DYNAMIC CATEGORY FILTER
+   * Generate all categories from MARKETPLACE_CATEGORIES instead of hardcoding 6 options
+   */
+  const allCategories = useMemo(() => {
+    const cats = ['all', ...MARKETPLACE_CATEGORIES.map(c => c.id)];
+    return [...new Set(cats)]; // Remove duplicates
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: '#0B1020' }}>
       <MarketplaceHeader />
@@ -376,15 +415,15 @@ export default function Marketplace() {
               placeholder="Search products..."
               className="h-12 md:h-10 bg-muted/40"
             />
+            {/* FIX #2: Dynamic category filter - now shows all 50+ categories */}
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="ai">AI</SelectItem>
-                <SelectItem value="seo">SEO</SelectItem>
-                <SelectItem value="apk">APK</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="education">Education</SelectItem>
+                {allCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat === 'all' ? 'All Categories' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={priceFilter} onValueChange={setPriceFilter}>
@@ -535,20 +574,22 @@ export default function Marketplace() {
                 {showMorePayment && (
                   <div className="space-y-2">
                     <div className={cn('rounded-xl border cursor-pointer', buyPayMethod === 'upi' ? 'border-primary bg-primary/5' : 'border-border')} onClick={() => setBuyPayMethod('upi')}>
-                      <div className="flex items-center gap-3 p-3"><Wallet className="h-4 w-4" /><div><p className="font-medium text-sm">UPI</p><p className="text-xs text-muted-foreground">GPay, PhonePe, Paytm</p></div></div>
+                      <div className="flex items-center gap-3 p-3"><Wallet className="h-4 w-4" /><div><p className="font-medium text-sm">UPI</p><p className="text-xs text-muted-foreground">GPay, PhonePe, BHIM</p></div></div>
                       {buyPayMethod === 'upi' && (
                         <div className="px-3 pb-3 space-y-2 border-t border-border pt-2">
                           <div className="bg-background rounded-lg p-2 flex items-center justify-between">
                             <div><p className="text-xs text-muted-foreground">UPI ID</p><p className="font-mono font-semibold text-sm">{bankDetails.upiId}</p></div>
-                            <button className="text-xs text-primary border border-primary/30 px-2 py-1 rounded" onClick={e => { e.stopPropagation(); handleCopy(bankDetails.upiId, 'UPI ID'); }}><Copy className="h-3 w-3 inline mr-1" />Copy</button>
+                            <button className="text-xs text-primary border border-primary/30 px-2 py-1 rounded" onClick={e => { e.stopPropagation(); handleCopy(bankDetails.upiId, 'UPI ID'); }}><Copy className="h-3 w-3" /></button>
                           </div>
                           <Input placeholder="Transaction ID" value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
-                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>Submit</Button>
+                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>
+                            {paymentSubmitting ? 'Submitting...' : 'Submit UPI Reference'}
+                          </Button>
                         </div>
                       )}
                     </div>
                     <div className={cn('rounded-xl border cursor-pointer', buyPayMethod === 'bank' ? 'border-primary bg-primary/5' : 'border-border')} onClick={() => setBuyPayMethod('bank')}>
-                      <div className="flex items-center gap-3 p-3"><CreditCard className="h-4 w-4" /><div><p className="font-medium text-sm">Bank Transfer</p><p className="text-xs text-muted-foreground">NEFT/IMPS</p></div></div>
+                      <div className="flex items-center gap-3 p-3"><CreditCard className="h-4 w-4" /><div><p className="font-medium text-sm">Bank Transfer</p><p className="text-xs text-muted-foreground">Direct transfer to account</p></div></div>
                       {buyPayMethod === 'bank' && (
                         <div className="px-3 pb-3 space-y-2 border-t border-border pt-2">
                           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -556,7 +597,9 @@ export default function Marketplace() {
                             <div className="bg-background rounded p-2"><p className="text-muted-foreground">IFSC</p><p className="font-mono font-bold">{bankDetails.ifsc}</p></div>
                           </div>
                           <Input placeholder="Transaction Ref" value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
-                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>Submit</Button>
+                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>
+                            {paymentSubmitting ? 'Submitting...' : 'Submit Bank Reference'}
+                          </Button>
                         </div>
                       )}
                     </div>
