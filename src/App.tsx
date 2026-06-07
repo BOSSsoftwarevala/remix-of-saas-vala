@@ -106,6 +106,7 @@ const Subscription = React.lazy(() => import("./pages/Subscription"));
 const AppAccess = React.lazy(() => import("./pages/AppAccess"));
 const Logout = React.lazy(() => import("./pages/Logout"));
 const ApkPipeline = React.lazy(() => import("./pages/ApkPipeline"));
+const AchievementsAdmin = React.lazy(() => import("./pages/AchievementsAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -686,6 +687,7 @@ function AppRoutes() {
         <Route path="/resellers" element={<AuthGuard><RoleGuard role="super_admin"><Resellers /></RoleGuard></AuthGuard>} />
         <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />
         <Route path="/audit-logs" element={<AuthGuard><RoleGuard role="super_admin"><AuditLogs /></RoleGuard></AuthGuard>} />
+        <Route path="/admin/achievements" element={<AuthGuard><RoleGuard role="super_admin"><AchievementsAdmin /></RoleGuard></AuthGuard>} />
         <Route path="/system-health" element={<AuthGuard><RoleGuard role="super_admin"><SystemHealth /></RoleGuard></AuthGuard>} />
         <Route path="/auto-pilot/apk-pipeline" element={<AuthGuard><RoleGuard role="super_admin"><Automation /></RoleGuard></AuthGuard>} />
         <Route path="/auto-pilot/system-monitor" element={<AuthGuard><RoleGuard role="super_admin"><Automation /></RoleGuard></AuthGuard>} />
