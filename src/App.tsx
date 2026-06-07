@@ -106,6 +106,7 @@ const Subscription = React.lazy(() => import("./pages/Subscription"));
 const AppAccess = React.lazy(() => import("./pages/AppAccess"));
 const Logout = React.lazy(() => import("./pages/Logout"));
 const ApkPipeline = React.lazy(() => import("./pages/ApkPipeline"));
+const AchievementsAdmin = React.lazy(() => import("./pages/AchievementsAdmin"));
 
 const queryClient = new QueryClient();
 
