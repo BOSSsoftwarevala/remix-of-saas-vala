@@ -35,6 +35,7 @@ import {
   ListChecks,
   Heart,
   History,
+  Trophy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
@@ -74,6 +75,7 @@ const navItems: NavItem[] = [
   { title: 'Archive', icon: Archive, href: '/archive', adminOnly: true, section: 'admin' },
   { title: 'Bulk Actions', icon: ListChecks, href: '/bulk-actions', adminOnly: true, section: 'admin' },
   { title: 'Tagging', icon: Tags, href: '/tags', adminOnly: true, section: 'admin' },
+  { title: 'Achievements', icon: Trophy, href: '/admin/achievements', adminOnly: true, section: 'admin' },
   { title: 'Settings', icon: Settings, href: '/settings', adminOnly: true, section: 'admin' },
 
   { title: 'SaaS AI', icon: BrainCircuit, href: '/saas-ai-dashboard', section: 'ai' },
