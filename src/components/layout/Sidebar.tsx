@@ -36,6 +36,7 @@ import {
   Heart,
   History,
   Trophy,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
@@ -84,6 +85,8 @@ const navItems: NavItem[] = [
   { title: 'AI APIs', icon: ShieldCheck, href: '/ai-apis', adminOnly: true, section: 'ai' },
 
   { title: 'SEO & Leads', icon: TrendingUp, href: '/seo-leads', section: 'marketing' },
+
+  { title: 'Author Hub', icon: Briefcase, href: '/author', section: 'author' },
 ];
 
 const sectionLabels: Record<string, string> = {
@@ -91,6 +94,7 @@ const sectionLabels: Record<string, string> = {
   admin: 'Admin',
   ai: 'AI Suite',
   marketing: 'Marketing',
+  author: 'Author',
 };
 
 export function Sidebar() {

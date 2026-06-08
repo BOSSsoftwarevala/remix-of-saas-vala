@@ -8,7 +8,8 @@ export type RoleViewKey =
   | 'user_dashboard'
   | 'reseller_manager'
   | 'reseller_user'
-  | 'seo_lead_manager';
+  | 'seo_lead_manager'
+  | 'author';
 
 export interface RoleConfig {
   key: RoleViewKey;
@@ -110,6 +111,21 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
       '/dashboard', '/seo-leads', '/announcements', '/recent', '/support',
     ],
     sections: ['marketing', 'core'],
+    allowDestructive: false,
+  },
+  author: {
+    key: 'author',
+    label: 'Author',
+    title: 'Software Author',
+    description: 'Create, publish, license and grow software products.',
+    accent: '280 80% 60%',
+    landing: '/author',
+    allowedHrefs: [
+      '/author', '/dashboard', '/products', '/keys', '/wallet',
+      '/dashboard/downloads', '/support', '/feedback', '/announcements',
+      '/admin/achievements',
+    ],
+    sections: ['author', 'core'],
     allowDestructive: false,
   },
 };
