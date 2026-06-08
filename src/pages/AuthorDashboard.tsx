@@ -96,22 +96,23 @@ export default function AuthorDashboard() {
       if (!user?.id) return;
       setLoading(true);
       // Author scope: own products if not super_admin
-      let productQuery = supabase.from('products').select('*').order('created_at', { ascending: false });
+      let productQuery: any = supabase.from('products').select('*').order('created_at', { ascending: false });
       if (!isSuperAdmin) productQuery = productQuery.eq('created_by', user.id);
       const { data: prods } = await productQuery.limit(200);
       const productIds = (prods ?? []).map((p: any) => p.id);
 
+      const sb: any = supabase;
       const [ordersRes, licensesRes, reviewsRes, supportRes] = await Promise.all([
         productIds.length
-          ? supabase.from('marketplace_orders').select('id, status, amount, currency, product_id, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
+          ? sb.from('marketplace_orders').select('id, status, amount, currency, product_id, user_id, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
           : Promise.resolve({ data: [] as any[] }),
         productIds.length
-          ? supabase.from('license_keys').select('id, key_code, status, product_id, expires_at, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
+          ? sb.from('license_keys').select('id, key_code, status, product_id, expires_at, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
           : Promise.resolve({ data: [] as any[] }),
         productIds.length
-          ? supabase.from('marketplace_reviews').select('id, rating, comment, product_id, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
+          ? sb.from('marketplace_reviews').select('id, rating, comment, product_id, created_at').in('product_id', productIds).order('created_at', { ascending: false }).limit(50)
           : Promise.resolve({ data: [] as any[] }),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).in('status', ['open', 'pending']),
+        sb.from('support_tickets').select('id', { count: 'exact', head: true }).in('status', ['open', 'pending']),
       ]);
 
       if (cancelled) return;
