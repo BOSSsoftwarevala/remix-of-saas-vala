@@ -1268,6 +1268,24 @@ function toPermissionRole(roles: string[]) {
   return 'user'
 }
 
+// Maps a client-side role-view override key to the effective permission role
+// the backend should enforce. Keep this table in sync with src/contexts/RoleViewContext.tsx.
+const ROLE_OVERRIDE_MAP: Record<string, { role: 'admin' | 'reseller' | 'user'; allowDestructive: boolean }> = {
+  product_manager:   { role: 'admin',    allowDestructive: false },
+  server_manager:    { role: 'admin',    allowDestructive: false },
+  reseller_manager:  { role: 'admin',    allowDestructive: false },
+  seo_lead_manager:  { role: 'admin',    allowDestructive: false },
+  author:            { role: 'user',     allowDestructive: false },
+  reseller_user:     { role: 'reseller', allowDestructive: false },
+  user_dashboard:    { role: 'user',     allowDestructive: false },
+}
+
+function readRoleOverride(req: Request): string | null {
+  const raw = String(req.headers.get('x-role-override') || '').trim().toLowerCase()
+  if (!raw) return null
+  return raw in ROLE_OVERRIDE_MAP ? raw : null
+}
+
 function resolvePermissionAction(method: string, module: string, subParts: string[]) {
   const endpoint = `${module}/${subParts[0] || ''}`.replace(/\/$/, '')
   if (module === 'commerce' && subParts[0] === 'buy-now') return { module: 'commerce', action: 'buy_now', endpoint }
@@ -1282,9 +1300,34 @@ function resolvePermissionAction(method: string, module: string, subParts: strin
   return { module, action: 'read', endpoint }
 }
 
-async function enforceRolePermission(admin: any, userId: string, method: string, module: string, subParts: string[]) {
+async function enforceRolePermission(
+  admin: any,
+  userId: string,
+  method: string,
+  module: string,
+  subParts: string[],
+  roleOverride?: string | null,
+) {
   const actorRoles = await getUserRoles(userId)
-  const role = toPermissionRole(actorRoles)
+  const actorIsSuperAdmin = actorRoles.includes('super_admin') || actorRoles.includes('admin')
+  let role = toPermissionRole(actorRoles)
+
+  // Honor an explicit role-view override only for super admins, and never widen
+  // privileges. The override always narrows or matches the actor's true role.
+  if (roleOverride) {
+    if (!actorIsSuperAdmin) {
+      return { ok: false, code: 'ROLE_OVERRIDE_FORBIDDEN', details: { reason: 'override_requires_super_admin' } }
+    }
+    const mapped = ROLE_OVERRIDE_MAP[roleOverride]
+    if (!mapped) {
+      return { ok: false, code: 'ROLE_OVERRIDE_INVALID', details: { override: roleOverride } }
+    }
+    role = mapped.role
+    if (!mapped.allowDestructive && method === 'DELETE') {
+      return { ok: false, code: 'ROLE_OVERRIDE_DESTRUCTIVE_BLOCKED', details: { override: roleOverride, method } }
+    }
+  }
+
   const permission = resolvePermissionAction(method, module, subParts)
 
   const [rolePermRes, systemPermRes] = await Promise.all([
@@ -1316,7 +1359,7 @@ async function enforceRolePermission(admin: any, userId: string, method: string,
   if (permissionConfigured && !(rolePermAllowed || systemPermAllowed)) {
     return { ok: false, code: 'PERMISSION_NOT_ALLOWED', details: { role, ...permission } }
   }
-  return { ok: true, role, permission }
+  return { ok: true, role, permission, overrideApplied: !!roleOverride }
 }
 
 async function writeTraceLogSafe(
