@@ -12057,7 +12057,8 @@ Deno.serve(async (req) => {
 
     const { userId, supabase: sb } = auth
     const admin = adminClient()
-    const permissionCheck = await enforceRolePermission(admin, userId, req.method, module, subParts)
+    const roleOverride = readRoleOverride(req)
+    const permissionCheck = await enforceRolePermission(admin, userId, req.method, module, subParts, roleOverride)
     if (!permissionCheck.ok) {
       await writeTraceLogSafe(admin, {
         trace_id: traceId,
@@ -12065,19 +12066,26 @@ Deno.serve(async (req) => {
         module: module || 'unknown',
         action: `${req.method.toLowerCase()}_denied`,
         api_endpoint: `${module}/${subParts[0] || ''}`,
-        request_payload: { body, reason: permissionCheck.code },
+        request_payload: { body, reason: permissionCheck.code, role_override: roleOverride },
         response_status: 403,
         execution_time: Date.now() - startedAt,
       })
       return fail('Forbidden', 403, 'PERMISSION_DENIED', permissionCheck.details)
     }
+    // Role-tier gating. When a role-view override is active for a super admin,
+    // gate against the simulated role rather than the actor's real role so the
+    // backend behaves like a real session for that role.
     if (module === 'admin') {
-      const allowed = await checkRole(userId, 'ADMIN')
-      if (!allowed) return err('unauthorized', 403, 'UNAUTHORIZED')
+      const effectiveIsAdmin = roleOverride
+        ? ROLE_OVERRIDE_MAP[roleOverride]?.role === 'admin'
+        : await checkRole(userId, 'ADMIN')
+      if (!effectiveIsAdmin) return err('unauthorized', 403, 'UNAUTHORIZED')
     }
     if (module === 'reseller') {
-      const allowed = await checkRole(userId, 'RESELLER')
-      if (!allowed) return err('unauthorized', 403, 'UNAUTHORIZED')
+      const effectiveIsReseller = roleOverride
+        ? ROLE_OVERRIDE_MAP[roleOverride]?.role === 'reseller' || ROLE_OVERRIDE_MAP[roleOverride]?.role === 'admin'
+        : await checkRole(userId, 'RESELLER')
+      if (!effectiveIsReseller) return err('unauthorized', 403, 'UNAUTHORIZED')
     }
     const endpointKey = `${module}/${subParts[0] || ''}`
     const sessionBindingError = await enforceSessionBinding(admin, userId, req, body, endpointKey, req.method)
