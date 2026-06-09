@@ -5,6 +5,17 @@ const DEFAULT_RETRIES = 2;
 const RETRY_DELAY_BASE_MS = 250;
 const API_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-gateway/api/v1`;
 
+const ROLE_OVERRIDE_STORAGE_KEY = 'sv_role_override';
+
+function readRoleOverrideHeader(): string | null {
+  try {
+    const v = sessionStorage.getItem(ROLE_OVERRIDE_STORAGE_KEY);
+    return v && v.length > 0 ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 export type ApiClientOptions = {
   timeoutMs?: number;
   retries?: number;
@@ -32,6 +43,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     throw new Error('AUTH_TOKEN_MISSING');
   }
   headers.Authorization = `Bearer ${session.access_token}`;
+  // Re-read the active role override on every request so a context switch
+  // takes effect immediately on the very next API call — backend enforces it.
+  const override = readRoleOverrideHeader();
+  if (override) headers['x-role-override'] = override;
   return headers;
 }
 
