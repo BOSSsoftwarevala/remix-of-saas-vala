@@ -11,6 +11,7 @@ import { useFraudDetection } from '@/hooks/useFraudDetection';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { HeroBannerSlider } from '@/components/marketplace/HeroBannerSlider';
+import { PromoHeroBanner } from '@/components/marketplace/PromoHeroBanner';
 import { SectionHeader } from '@/components/marketplace/SectionHeader';
 import { SectionSlider } from '@/components/marketplace/SectionSlider';
 import { MarketplaceProductCard } from '@/components/marketplace/MarketplaceProductCard';
@@ -368,6 +369,9 @@ export default function Marketplace() {
       <MarketplaceHeader />
       <main className="pt-16 pb-8">
         <HeroBannerSlider />
+        <section className="px-4 md:px-8 mt-4">
+          <PromoHeroBanner />
+        </section>
         <section className="px-4 md:px-8 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
             <Input
