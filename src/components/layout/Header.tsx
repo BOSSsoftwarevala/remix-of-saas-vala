@@ -18,6 +18,7 @@ import { useCart } from '@/hooks/useCart';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
+import { LanguageSwitcher } from '@/components/global/LanguageSwitcher';
 
 const pageTitles: Record<string, string> = {
   '/': 'Marketplace',
@@ -142,6 +143,9 @@ export function Header() {
         </Button>
 
         <WalletHeaderButton />
+
+        {/* 125+ language switcher */}
+        <LanguageSwitcher />
 
         {/* Super Admin: switch dashboard role view */}
         <RoleSwitcher />
