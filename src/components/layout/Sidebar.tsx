@@ -171,7 +171,7 @@ export function Sidebar() {
                   <span className="font-display text-[15px] font-bold text-white tracking-tight leading-none">
                     SaaS VALA
                   </span>
-                  <p className="text-[10px] text-white/40 font-medium mt-0.5">Admin Panel</p>
+                  <p className="text-[10px] text-white/40 font-medium mt-0.5">{t('nav_admin_panel')}</p>
                 </div>
               </motion.div>
             ) : (
