@@ -19,45 +19,46 @@ import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { RoleSwitcher } from '@/components/layout/RoleSwitcher';
 import { LanguageSwitcher } from '@/components/global/LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 
-const pageTitles: Record<string, string> = {
-  '/': 'Marketplace',
-  '/dashboard': 'Dashboard',
-  '/products': 'Product Manager',
-  '/admin/marketplace': 'Marketplace Admin',
-  '/keys': 'License Keys',
-  '/servers': 'Server Manager',
-  '/ai-chat': 'AI Chat',
-  '/saas-ai-dashboard': 'AI Dashboard',
-  '/ai-apis': 'AI API Manager',
-  '/wallet': 'Wallet & Billing',
-  '/seo-leads': 'SEO & Leads',
-  '/reseller-manager': 'Reseller Manager',
-  '/resellers': 'Reseller Manager',
-  '/audit-logs': 'Audit Logs',
-  '/system-health': 'System Health',
-  '/settings': 'Settings',
-  '/support': 'Support',
-  '/support/ticket': 'Support Ticket',
-  '/feedback': 'Feedback',
-  '/announcements': 'Announcements',
-  '/dashboard/downloads': 'Download History',
-  '/favorites': 'Favorites',
-  '/recent': 'Recent Activity',
-  '/onboarding': 'Onboarding',
-  '/email-logs': 'Email Logs',
-  '/retry-actions': 'Retry Actions',
-  '/archive': 'Archive',
-  '/bulk-actions': 'Bulk Actions',
-  '/tags': 'Tagging',
-  '/education': 'Education Systems',
-  '/role-detail': 'Role Configuration',
-  '/automation': 'Auto-Pilot',
-  '/auto-pilot': 'Auto-Pilot',
-  '/auto-pilot/apk-pipeline': 'APK Pipeline',
-  '/auto-pilot/system-monitor': 'System Monitor',
-  '/apk-pipeline': 'APK Pipeline',
-  '/vala-builder': 'VALA Builder',
+const pageTitleKeys: Record<string, string> = {
+  '/': 'page_marketplace',
+  '/dashboard': 'page_dashboard',
+  '/products': 'page_products',
+  '/admin/marketplace': 'page_admin_marketplace',
+  '/keys': 'page_keys',
+  '/servers': 'page_servers',
+  '/ai-chat': 'page_ai_chat',
+  '/saas-ai-dashboard': 'page_saas_ai',
+  '/ai-apis': 'page_ai_apis',
+  '/wallet': 'page_wallet',
+  '/seo-leads': 'page_seo_leads',
+  '/reseller-manager': 'page_resellers',
+  '/resellers': 'page_resellers',
+  '/audit-logs': 'page_audit_logs',
+  '/system-health': 'page_system_health',
+  '/settings': 'page_settings',
+  '/support': 'page_support',
+  '/support/ticket': 'page_support_ticket',
+  '/feedback': 'page_feedback',
+  '/announcements': 'page_announcements',
+  '/dashboard/downloads': 'page_downloads',
+  '/favorites': 'page_favorites',
+  '/recent': 'page_recent',
+  '/onboarding': 'page_onboarding',
+  '/email-logs': 'page_email_logs',
+  '/retry-actions': 'page_retry_actions',
+  '/archive': 'page_archive',
+  '/bulk-actions': 'page_bulk_actions',
+  '/tags': 'page_tags',
+  '/education': 'page_education',
+  '/role-detail': 'page_role_detail',
+  '/automation': 'page_auto_pilot',
+  '/auto-pilot': 'page_auto_pilot',
+  '/auto-pilot/apk-pipeline': 'page_apk_pipeline',
+  '/auto-pilot/system-monitor': 'page_system_monitor',
+  '/apk-pipeline': 'page_apk_pipeline',
+  '/vala-builder': 'page_vala_builder',
 };
 
 export function Header() {
@@ -66,8 +67,10 @@ export function Header() {
   const { user, role, signOut, isSuperAdmin } = useAuth();
   const { count: cartCount } = useCart();
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation('common');
 
-  const pageTitle = pageTitles[location.pathname] || 'SaaS VALA';
+  const titleKey = pageTitleKeys[location.pathname];
+  const pageTitle = titleKey ? t(titleKey) : 'SaaS VALA';
   const canGoBack = location.pathname !== '/';
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || 'U';
   const broadcast = localStorage.getItem('sv_admin_broadcast') || '';
@@ -98,12 +101,12 @@ export function Header() {
           {isSuperAdmin && (
             <Badge className="text-[10px] font-semibold bg-primary/10 text-primary border-primary/20 px-1.5 py-0">
               <Sparkles className="h-2.5 w-2.5 mr-0.5" />
-              Admin
+              {t('header_admin')}
             </Badge>
           )}
           {role === 'reseller' && (
             <Badge variant="outline" className="text-[10px] border-secondary/30 text-secondary bg-secondary/5 px-1.5 py-0">
-              Reseller
+              {t('header_reseller')}
             </Badge>
           )}
         </div>
@@ -115,7 +118,7 @@ export function Header() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
           <Input
             type="search"
-            placeholder="Search anything..."
+            placeholder={t('header_search_placeholder')}
             className="pl-9 h-8 text-sm bg-muted/20 border-border/30 focus:border-primary/40 focus:bg-muted/40 rounded-lg transition-all duration-200"
           />
         </div>
@@ -189,24 +192,24 @@ export function Header() {
             <DropdownMenuSeparator className="bg-border/30" />
             <DropdownMenuItem className="cursor-pointer text-sm py-2" onClick={() => navigate('/settings')}>
               <User className="mr-2 h-3.5 w-3.5" />
-              Profile
+              {t('header_profile')}
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer text-sm py-2" onClick={() => navigate('/settings')}>
               <Settings className="mr-2 h-3.5 w-3.5" />
-              Settings
+              {t('header_settings')}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border/30" />
             <DropdownMenuItem className="cursor-pointer text-sm py-2" onClick={() => setTheme('light')}>
               <Sun className="mr-2 h-3.5 w-3.5" />
-              {theme === 'light' ? 'Light (Active)' : 'Switch to Light'}
+              {theme === 'light' ? t('header_theme_light_active') : t('header_theme_light_switch')}
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer text-sm py-2" onClick={() => setTheme('dark')}>
               <Moon className="mr-2 h-3.5 w-3.5" />
-              {theme === 'dark' ? 'Dark (Active)' : 'Switch to Dark'}
+              {theme === 'dark' ? t('header_theme_dark_active') : t('header_theme_dark_switch')}
             </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer text-sm py-2" onClick={() => setTheme('system')}>
               <Monitor className="mr-2 h-3.5 w-3.5" />
-              {theme === 'system' ? 'System (Active)' : 'Use System Theme'}
+              {theme === 'system' ? t('header_theme_system_active') : t('header_theme_system_use')}
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border/30" />
             <DropdownMenuItem
@@ -214,7 +217,7 @@ export function Header() {
               onClick={signOut}
             >
               <LogOut className="mr-2 h-3.5 w-3.5" />
-              Sign out
+              {t('header_signout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
