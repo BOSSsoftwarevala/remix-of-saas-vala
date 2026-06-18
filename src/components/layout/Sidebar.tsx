@@ -42,9 +42,11 @@ import { Button } from '@/components/ui/button';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface NavItem {
   title: string;
+  i18nKey?: string;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   activePaths?: string[];
@@ -53,48 +55,48 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', section: 'core' },
-  { title: 'Products', icon: Package, href: '/products', section: 'core' },
-  { title: 'License Keys', icon: KeyRound, href: '/keys', section: 'core' },
-  { title: 'Servers', icon: Server, href: '/servers', section: 'core' },
-  { title: 'Wallet', icon: Wallet, href: '/wallet', section: 'core' },
-  { title: 'Downloads', icon: Download, href: '/dashboard/downloads', section: 'core' },
-  { title: 'Favorites', icon: Heart, href: '/favorites', section: 'core' },
-  { title: 'Recent', icon: History, href: '/recent', section: 'core' },
-  { title: 'Support', icon: Headset, href: '/support', section: 'core' },
-  { title: 'Feedback', icon: MessageCircle, href: '/feedback', section: 'core' },
-  { title: 'Announcements', icon: BellRing, href: '/announcements', section: 'core' },
+  { title: 'Dashboard', i18nKey: 'nav_dashboard', icon: LayoutDashboard, href: '/dashboard', section: 'core' },
+  { title: 'Products', i18nKey: 'nav_products', icon: Package, href: '/products', section: 'core' },
+  { title: 'License Keys', i18nKey: 'nav_license_keys', icon: KeyRound, href: '/keys', section: 'core' },
+  { title: 'Servers', i18nKey: 'nav_servers', icon: Server, href: '/servers', section: 'core' },
+  { title: 'Wallet', i18nKey: 'nav_wallet', icon: Wallet, href: '/wallet', section: 'core' },
+  { title: 'Downloads', i18nKey: 'nav_downloads', icon: Download, href: '/dashboard/downloads', section: 'core' },
+  { title: 'Favorites', i18nKey: 'nav_favorites', icon: Heart, href: '/favorites', section: 'core' },
+  { title: 'Recent', i18nKey: 'nav_recent', icon: History, href: '/recent', section: 'core' },
+  { title: 'Support', i18nKey: 'nav_support', icon: Headset, href: '/support', section: 'core' },
+  { title: 'Feedback', i18nKey: 'nav_feedback', icon: MessageCircle, href: '/feedback', section: 'core' },
+  { title: 'Announcements', i18nKey: 'nav_announcements', icon: BellRing, href: '/announcements', section: 'core' },
 
-  { title: 'Resellers', icon: UsersRound, href: '/reseller-manager', activePaths: ['/reseller-manager', '/resellers'], adminOnly: true, section: 'admin' },
-  { title: 'Marketplace', icon: Store, href: '/admin/marketplace', adminOnly: true, section: 'admin' },
-  { title: 'Auto-Pilot', icon: BotMessageSquare, href: '/auto-pilot', activePaths: ['/auto-pilot', '/auto-pilot/apk-pipeline', '/auto-pilot/system-monitor'], adminOnly: true, section: 'admin' },
-  { title: 'APK Pipeline', icon: Smartphone, href: '/auto-pilot/apk-pipeline', activePaths: ['/auto-pilot/apk-pipeline'], adminOnly: true, section: 'admin' },
-  { title: 'Audit Logs', icon: ScrollText, href: '/audit-logs', adminOnly: true, section: 'admin' },
-  { title: 'System Health', icon: HeartPulse, href: '/system-health', adminOnly: true, section: 'admin' },
-  { title: 'Email Logs', icon: Mail, href: '/email-logs', adminOnly: true, section: 'admin' },
-  { title: 'Retry Actions', icon: RefreshCw, href: '/retry-actions', adminOnly: true, section: 'admin' },
-  { title: 'Archive', icon: Archive, href: '/archive', adminOnly: true, section: 'admin' },
-  { title: 'Bulk Actions', icon: ListChecks, href: '/bulk-actions', adminOnly: true, section: 'admin' },
-  { title: 'Tagging', icon: Tags, href: '/tags', adminOnly: true, section: 'admin' },
-  { title: 'Achievements', icon: Trophy, href: '/admin/achievements', adminOnly: true, section: 'admin' },
-  { title: 'Settings', icon: Settings, href: '/settings', adminOnly: true, section: 'admin' },
+  { title: 'Resellers', i18nKey: 'nav_resellers', icon: UsersRound, href: '/reseller-manager', activePaths: ['/reseller-manager', '/resellers'], adminOnly: true, section: 'admin' },
+  { title: 'Marketplace', i18nKey: 'nav_marketplace', icon: Store, href: '/admin/marketplace', adminOnly: true, section: 'admin' },
+  { title: 'Auto-Pilot', i18nKey: 'nav_auto_pilot', icon: BotMessageSquare, href: '/auto-pilot', activePaths: ['/auto-pilot', '/auto-pilot/apk-pipeline', '/auto-pilot/system-monitor'], adminOnly: true, section: 'admin' },
+  { title: 'APK Pipeline', i18nKey: 'nav_apk_pipeline', icon: Smartphone, href: '/auto-pilot/apk-pipeline', activePaths: ['/auto-pilot/apk-pipeline'], adminOnly: true, section: 'admin' },
+  { title: 'Audit Logs', i18nKey: 'nav_audit_logs', icon: ScrollText, href: '/audit-logs', adminOnly: true, section: 'admin' },
+  { title: 'System Health', i18nKey: 'nav_system_health', icon: HeartPulse, href: '/system-health', adminOnly: true, section: 'admin' },
+  { title: 'Email Logs', i18nKey: 'nav_email_logs', icon: Mail, href: '/email-logs', adminOnly: true, section: 'admin' },
+  { title: 'Retry Actions', i18nKey: 'nav_retry_actions', icon: RefreshCw, href: '/retry-actions', adminOnly: true, section: 'admin' },
+  { title: 'Archive', i18nKey: 'nav_archive', icon: Archive, href: '/archive', adminOnly: true, section: 'admin' },
+  { title: 'Bulk Actions', i18nKey: 'nav_bulk_actions', icon: ListChecks, href: '/bulk-actions', adminOnly: true, section: 'admin' },
+  { title: 'Tagging', i18nKey: 'nav_tagging', icon: Tags, href: '/tags', adminOnly: true, section: 'admin' },
+  { title: 'Achievements', i18nKey: 'nav_achievements', icon: Trophy, href: '/admin/achievements', adminOnly: true, section: 'admin' },
+  { title: 'Settings', i18nKey: 'nav_settings', icon: Settings, href: '/settings', adminOnly: true, section: 'admin' },
 
-  { title: 'SaaS AI', icon: BrainCircuit, href: '/saas-ai-dashboard', section: 'ai' },
-  { title: 'VALA Builder', icon: Sparkles, href: '/vala-builder', section: 'ai' },
-  { title: 'AI Chat', icon: MessageSquareText, href: '/ai-chat', section: 'ai' },
-  { title: 'AI APIs', icon: ShieldCheck, href: '/ai-apis', adminOnly: true, section: 'ai' },
+  { title: 'SaaS AI', i18nKey: 'nav_saas_ai', icon: BrainCircuit, href: '/saas-ai-dashboard', section: 'ai' },
+  { title: 'VALA Builder', i18nKey: 'nav_vala_builder', icon: Sparkles, href: '/vala-builder', section: 'ai' },
+  { title: 'AI Chat', i18nKey: 'nav_ai_chat', icon: MessageSquareText, href: '/ai-chat', section: 'ai' },
+  { title: 'AI APIs', i18nKey: 'nav_ai_apis', icon: ShieldCheck, href: '/ai-apis', adminOnly: true, section: 'ai' },
 
-  { title: 'SEO & Leads', icon: TrendingUp, href: '/seo-leads', section: 'marketing' },
+  { title: 'SEO & Leads', i18nKey: 'nav_seo_leads', icon: TrendingUp, href: '/seo-leads', section: 'marketing' },
 
-  { title: 'Author Hub', icon: Briefcase, href: '/author', section: 'author' },
+  { title: 'Author Hub', i18nKey: 'nav_author_hub', icon: Briefcase, href: '/author', section: 'author' },
 ];
 
-const sectionLabels: Record<string, string> = {
-  core: 'Main',
-  admin: 'Admin',
-  ai: 'AI Suite',
-  marketing: 'Marketing',
-  author: 'Author',
+const sectionLabelKeys: Record<string, string> = {
+  core: 'section_main',
+  admin: 'section_admin',
+  ai: 'section_ai_suite',
+  marketing: 'section_marketing',
+  author: 'section_author',
 };
 
 export function Sidebar() {
@@ -102,6 +104,7 @@ export function Sidebar() {
   const location = useLocation();
   const { isSuperAdmin, signOut } = useAuth();
   const { config: roleConfig, isSimulating } = useRoleView();
+  const { t } = useTranslation('common');
 
   const isItemActive = (item: NavItem) => {
     const paths = item.activePaths ?? [item.href];
@@ -192,7 +195,7 @@ export function Sidebar() {
               {/* Section label */}
               {!collapsed && (
                 <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/30">
-                  {sectionLabels[section] || section}
+                  {sectionLabelKeys[section] ? t(sectionLabelKeys[section]) : section}
                 </p>
               )}
               {collapsed && <div className="h-px bg-white/[0.06] mx-2 mb-2" />}
@@ -201,6 +204,7 @@ export function Sidebar() {
                 {items.map((item) => {
                   const isActive = isItemActive(item);
                   const Icon = item.icon;
+                  const label = item.i18nKey ? t(item.i18nKey) : item.title;
 
                   const linkContent = (
                     <NavLink
@@ -237,7 +241,7 @@ export function Sidebar() {
                       />
 
                       {!collapsed && (
-                        <span className="truncate">{item.title}</span>
+                        <span className="truncate">{label}</span>
                       )}
 
                       {/* Hover glow */}
@@ -252,7 +256,7 @@ export function Sidebar() {
                       <Tooltip key={`${item.href}-${item.title}`} delayDuration={0}>
                         <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                         <TooltipContent side="right" sideOffset={8} className="bg-[hsl(220,50%,15%)] text-white border-white/10 text-xs font-medium shadow-xl">
-                          {item.title}
+                          {label}
                         </TooltipContent>
                       </Tooltip>
                     );
@@ -277,12 +281,12 @@ export function Sidebar() {
                 )}
               >
                 <LogOut className="h-[18px] w-[18px] shrink-0" />
-                {!collapsed && <span>Sign Out</span>}
+                {!collapsed && <span>{t('nav_sign_out')}</span>}
               </button>
             </TooltipTrigger>
             {collapsed && (
               <TooltipContent side="right" sideOffset={8} className="bg-[hsl(220,50%,15%)] text-white border-white/10 text-xs">
-                Sign Out
+                {t('nav_sign_out')}
               </TooltipContent>
             )}
           </Tooltip>
@@ -301,14 +305,14 @@ export function Sidebar() {
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4 mr-2" />
-                <span className="text-xs">Collapse</span>
+                <span className="text-xs">{t('nav_collapse')}</span>
               </>
             )}
           </Button>
 
           {!collapsed && (
             <p className="mt-2 pb-1 text-center text-[10px] text-white/20 font-medium">
-              © 2025 SaaS VALA
+              {t('nav_copyright')}
             </p>
           )}
         </div>
