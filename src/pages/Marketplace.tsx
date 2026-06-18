@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MarketplaceHeader } from '@/components/marketplace/MarketplaceHeader';
 import { LazySection } from '@/components/marketplace/LazySection';
 import { MarketplaceCategoryRow } from '@/components/marketplace/MarketplaceCategoryRow';
@@ -58,6 +59,7 @@ type BuyPayMethod = 'wallet' | 'upi' | 'bank' | 'crypto';
 const TRENDING_RATING_THRESHOLD = 4.8;
 
 export default function Marketplace() {
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPayment, setShowPayment] = useState(false);
@@ -218,9 +220,9 @@ export default function Marketplace() {
       },
     );
     if (actionResult.ok) {
-      toast.success('🎉 Payment successful!');
+      toast.success(t('mp_payment_success_toast'));
     } else if (!('skipped' in actionResult)) {
-      toast.error((actionResult as { error?: Error }).error?.message || 'Payment failed');
+      toast.error((actionResult as { error?: Error }).error?.message || t('mp_payment_failed'));
     }
     paymentLockRef.current = false;
     setPaymentSubmitting(false);
@@ -270,16 +272,16 @@ export default function Marketplace() {
       },
     );
     if (actionResult.ok) {
-      toast.success('🎉 Payment successful!');
+      toast.success(t('mp_payment_success_toast'));
     } else if (!('skipped' in actionResult)) {
-      toast.error((actionResult as { error?: Error }).error?.message || 'Submission failed');
+      toast.error((actionResult as { error?: Error }).error?.message || t('mp_submission_failed'));
     }
     paymentLockRef.current = false;
     setPaymentSubmitting(false);
   };
 
   const handleCopy = (text: string, label: string) => {
-    navigator.clipboard.writeText(text); toast.success(`${label} copied!`);
+    navigator.clipboard.writeText(text); toast.success(t('mp_copied_label', { label }));
   };
 
   useEffect(() => {
@@ -316,7 +318,7 @@ export default function Marketplace() {
         });
         if (!res) {
           setSearchResults([]);
-          toast.error('Search failed');
+          toast.error(t('mp_search_failed'));
           return;
         }
         setSearchResults(Array.isArray(res?.data) ? res.data : []);
@@ -377,54 +379,54 @@ export default function Marketplace() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products..."
+              placeholder={t('mp_search_placeholder')}
               className="h-12 md:h-10 bg-muted/40"
             />
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder="Category" /></SelectTrigger>
+              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder={t('mp_filter_category')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="ai">AI</SelectItem>
-                <SelectItem value="seo">SEO</SelectItem>
-                <SelectItem value="apk">APK</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="education">Education</SelectItem>
+                <SelectItem value="all">{t('mp_all_categories')}</SelectItem>
+                <SelectItem value="ai">{t('mp_cat_ai')}</SelectItem>
+                <SelectItem value="seo">{t('mp_cat_seo')}</SelectItem>
+                <SelectItem value="apk">{t('mp_cat_apk')}</SelectItem>
+                <SelectItem value="finance">{t('mp_cat_finance')}</SelectItem>
+                <SelectItem value="education">{t('mp_cat_education')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={priceFilter} onValueChange={setPriceFilter}>
-              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder="Price" /></SelectTrigger>
+              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder={t('mp_filter_price')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Prices</SelectItem>
-                <SelectItem value="5">Up to $5</SelectItem>
-                <SelectItem value="10">Up to $10</SelectItem>
-                <SelectItem value="25">Up to $25</SelectItem>
-                <SelectItem value="50">Up to $50</SelectItem>
+                <SelectItem value="all">{t('mp_all_prices')}</SelectItem>
+                <SelectItem value="5">{t('mp_price_up_to', { amount: 5 })}</SelectItem>
+                <SelectItem value="10">{t('mp_price_up_to', { amount: 10 })}</SelectItem>
+                <SelectItem value="25">{t('mp_price_up_to', { amount: 25 })}</SelectItem>
+                <SelectItem value="50">{t('mp_price_up_to', { amount: 50 })}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={languageFilter} onValueChange={setLanguageFilter}>
-              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder="Language" /></SelectTrigger>
+              <SelectTrigger className="h-12 md:h-10"><SelectValue placeholder={t('mp_filter_language')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Languages</SelectItem>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="hindi">Hindi</SelectItem>
-                <SelectItem value="spanish">Spanish</SelectItem>
-                <SelectItem value="arabic">Arabic</SelectItem>
+                <SelectItem value="all">{t('mp_all_languages')}</SelectItem>
+                <SelectItem value="english">{t('mp_lang_english')}</SelectItem>
+                <SelectItem value="hindi">{t('mp_lang_hindi')}</SelectItem>
+                <SelectItem value="spanish">{t('mp_lang_spanish')}</SelectItem>
+                <SelectItem value="arabic">{t('mp_lang_arabic')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          {(searchLoading || !currencyRatesReady) && <p className="mt-2 text-xs text-muted-foreground">Searching...</p>}
+          {(searchLoading || !currencyRatesReady) && <p className="mt-2 text-xs text-muted-foreground">{t('mp_searching')}</p>}
           {!searchLoading && searchQuery.trim() && filteredProducts.length === 0 && (
             <div className="mt-2 rounded-md border border-border/60 p-2 text-xs text-muted-foreground">
-              <p>No products found for "{searchQuery.trim()}".</p>
+              <p>{t('mp_no_results', { q: searchQuery.trim() })}</p>
               {typoSuggestions.length > 0 && (
-                <p className="mt-1">Did you mean: {typoSuggestions.join(', ')}</p>
+                <p className="mt-1">{t('mp_did_you_mean', { list: typoSuggestions.join(', ') })}</p>
               )}
             </div>
           )}
         </section>
 
         <section className="py-2">
-          <SectionHeader icon="🔥" title="Trending" subtitle="Most demanded products right now" badge="TRENDING" badgeVariant="trending" totalCount={trendingProducts.length} />
+          <SectionHeader icon="🔥" title={t('mp_section_trending_title')} subtitle={t('mp_section_trending_sub')} badge={t('mp_badge_trending')} badgeVariant="trending" totalCount={trendingProducts.length} />
           <SectionSlider>
             {trendingCards.map((product, index) => (
               <MarketplaceProductCard
@@ -439,7 +441,7 @@ export default function Marketplace() {
         </section>
 
         <section className="py-2">
-          <SectionHeader icon="🆕" title="New Launch" subtitle="Freshly released marketplace apps" badge="NEW" badgeVariant="new" totalCount={newLaunchProducts.length} />
+          <SectionHeader icon="🆕" title={t('mp_section_new_title')} subtitle={t('mp_section_new_sub')} badge={t('mp_badge_new')} badgeVariant="new" totalCount={newLaunchProducts.length} />
           <SectionSlider>
             {newLaunchProducts.map((product, i) => (
               <MarketplaceProductCard key={`new-${product.id}`} product={product as any} index={i} onBuyNow={handleBuyNow} rank={i + 1} />
@@ -448,7 +450,7 @@ export default function Marketplace() {
         </section>
 
         <section className="py-2">
-          <SectionHeader icon="🏆" title="Top Selling" subtitle="Top-rated and high-conversion products" badge="TOP" badgeVariant="top" totalCount={topSellingProducts.length} />
+          <SectionHeader icon="🏆" title={t('mp_section_top_title')} subtitle={t('mp_section_top_sub')} badge={t('mp_badge_top')} badgeVariant="top" totalCount={topSellingProducts.length} />
           <SectionSlider>
             {topSellingProducts.map((product, i) => (
               <MarketplaceProductCard key={`top-${product.id}`} product={product as any} index={i} onBuyNow={handleBuyNow} rank={i + 1} />
@@ -466,27 +468,27 @@ export default function Marketplace() {
         {/* Simple Pricing */}
         <section id="pricing" className="py-12 px-4 md:px-8 border-t border-border">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-black text-foreground mb-3">💰 Simple Pricing</h2>
-            <p className="text-muted-foreground mb-6">Every software. One price. No hidden fees.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-foreground mb-3">{t('mp_pricing_title')}</h2>
+            <p className="text-muted-foreground mb-6">{t('mp_pricing_subtitle')}</p>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="rounded-xl border border-border p-5 flex flex-col items-center gap-2">
-                <h3 className="font-bold text-foreground">Free Trial</h3>
+                <h3 className="font-bold text-foreground">{t('mp_plan_free')}</h3>
                 <p className="text-3xl font-black text-foreground">$0</p>
-                <p className="text-xs text-muted-foreground">7-day demo access</p>
-                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Browse</Button>
+                <p className="text-xs text-muted-foreground">{t('mp_plan_free_desc')}</p>
+                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>{t('mp_browse')}</Button>
               </div>
               <div className="rounded-xl border-2 border-primary p-5 flex flex-col items-center gap-2 relative bg-primary/5">
-                <Badge className="absolute -top-2.5 bg-primary text-primary-foreground text-[10px] font-black px-2">POPULAR</Badge>
-                <h3 className="font-bold text-foreground">Pro License</h3>
+                <Badge className="absolute -top-2.5 bg-primary text-primary-foreground text-[10px] font-black px-2">{t('mp_plan_popular')}</Badge>
+                <h3 className="font-bold text-foreground">{t('mp_plan_pro')}</h3>
                 <p className="text-3xl font-black text-primary">$5</p>
-                <p className="text-xs text-muted-foreground">Source + APK + 30 days</p>
-                <Button size="sm" className="w-full mt-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Buy Now</Button>
+                <p className="text-xs text-muted-foreground">{t('mp_plan_pro_desc')}</p>
+                <Button size="sm" className="w-full mt-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>{t('mp_buy_now')}</Button>
               </div>
               <div className="rounded-xl border border-border p-5 flex flex-col items-center gap-2">
-                <h3 className="font-bold text-foreground">Enterprise</h3>
-                <p className="text-3xl font-black text-foreground">Custom</p>
-                <p className="text-xs text-muted-foreground">White-label + deploy</p>
-                <Button variant="outline" size="sm" className="w-full mt-2">Contact</Button>
+                <h3 className="font-bold text-foreground">{t('mp_plan_enterprise')}</h3>
+                <p className="text-3xl font-black text-foreground">{t('mp_plan_custom')}</p>
+                <p className="text-xs text-muted-foreground">{t('mp_plan_enterprise_desc')}</p>
+                <Button variant="outline" size="sm" className="w-full mt-2">{t('mp_contact')}</Button>
               </div>
             </div>
           </div>
@@ -495,22 +497,22 @@ export default function Marketplace() {
         {/* Contact */}
         <section id="contact" className="py-12 px-4 md:px-8 border-t border-border">
           <div className="max-w-xl mx-auto text-center">
-            <h2 className="text-2xl font-black text-foreground mb-4">📬 Contact Us</h2>
+            <h2 className="text-2xl font-black text-foreground mb-4">{t('mp_contact_us')}</h2>
             <div className="grid gap-3 text-left">
               <a href="mailto:support@saasvala.com" className="rounded-xl border border-border p-4 flex items-center gap-3 hover:border-primary/50 transition-colors">
                 <span className="text-xl">📧</span>
-                <div><p className="font-bold text-sm text-foreground">Email</p><p className="text-xs text-muted-foreground">support@saasvala.com</p></div>
+                <div><p className="font-bold text-sm text-foreground">{t('mp_email')}</p><p className="text-xs text-muted-foreground">support@saasvala.com</p></div>
               </a>
               <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="rounded-xl border border-border p-4 flex items-center gap-3 hover:border-primary/50 transition-colors">
                 <span className="text-xl">💬</span>
-                <div><p className="font-bold text-sm text-foreground">WhatsApp</p><p className="text-xs text-muted-foreground">Chat instantly</p></div>
+                <div><p className="font-bold text-sm text-foreground">{t('mp_whatsapp')}</p><p className="text-xs text-muted-foreground">{t('mp_whatsapp_desc')}</p></div>
               </a>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-border py-4 px-4"><p className="text-center text-xs text-muted-foreground">Powered by <span className="font-semibold text-primary">SoftwareVala™</span></p></footer>
+      <footer className="border-t border-border py-4 px-4"><p className="text-center text-xs text-muted-foreground">{t('mp_powered_by')} <span className="font-semibold text-primary">SoftwareVala™</span></p></footer>
 
       {/* Payment Dialog */}
       {showPayment && (
@@ -519,48 +521,48 @@ export default function Marketplace() {
             {!paymentSuccess ? (
               <div className="space-y-3">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2 text-sm"><ShoppingCart className="h-4 w-4 text-primary" />Complete Purchase</DialogTitle>
+                  <DialogTitle className="flex items-center gap-2 text-sm"><ShoppingCart className="h-4 w-4 text-primary" />{t('mp_complete_purchase')}</DialogTitle>
                   <DialogDescription>{selectedProduct?.title} — ${selectedProduct?.price}</DialogDescription>
                 </DialogHeader>
                 <div className={cn('rounded-xl border-2 cursor-pointer p-3', buyPayMethod === 'wallet' ? 'border-primary bg-primary/5' : 'border-border')} onClick={() => setBuyPayMethod('wallet')}>
                   <div className="flex items-center gap-3">
                     <Wallet className="h-5 w-5 text-primary" />
-                    <div><p className="font-semibold text-sm">Wallet</p><p className="text-xs text-muted-foreground">Instant checkout</p></div>
+                    <div><p className="font-semibold text-sm">{t('mp_wallet')}</p><p className="text-xs text-muted-foreground">{t('mp_wallet_desc')}</p></div>
                   </div>
                 </div>
                 {buyPayMethod === 'wallet' && (
                 <Button className="w-full h-11" onClick={handleWalletPayment} disabled={paymentSubmitting || processing || isProcessing(`PAY_WALLET_${selectedProduct?.id || ''}`)}>
-                  {paymentSubmitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</> : `Pay $${selectedProduct?.price} from Wallet`}
+                  {paymentSubmitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('mp_processing')}</> : t('mp_pay_wallet', { amount: selectedProduct?.price })}
                 </Button>
                 )}
                 <button className="w-full flex items-center justify-center gap-1 text-xs text-muted-foreground py-1" onClick={() => setShowMorePayment(!showMorePayment)}>
-                  {showMorePayment ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} More Options
+                  {showMorePayment ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />} {t('mp_more_options')}
                 </button>
                 {showMorePayment && (
                   <div className="space-y-2">
                     <div className={cn('rounded-xl border cursor-pointer', buyPayMethod === 'upi' ? 'border-primary bg-primary/5' : 'border-border')} onClick={() => setBuyPayMethod('upi')}>
-                      <div className="flex items-center gap-3 p-3"><Wallet className="h-4 w-4" /><div><p className="font-medium text-sm">UPI</p><p className="text-xs text-muted-foreground">GPay, PhonePe, Paytm</p></div></div>
+                      <div className="flex items-center gap-3 p-3"><Wallet className="h-4 w-4" /><div><p className="font-medium text-sm">{t('mp_upi')}</p><p className="text-xs text-muted-foreground">{t('mp_upi_desc')}</p></div></div>
                       {buyPayMethod === 'upi' && (
                         <div className="px-3 pb-3 space-y-2 border-t border-border pt-2">
                           <div className="bg-background rounded-lg p-2 flex items-center justify-between">
-                            <div><p className="text-xs text-muted-foreground">UPI ID</p><p className="font-mono font-semibold text-sm">{bankDetails.upiId}</p></div>
-                            <button className="text-xs text-primary border border-primary/30 px-2 py-1 rounded" onClick={e => { e.stopPropagation(); handleCopy(bankDetails.upiId, 'UPI ID'); }}><Copy className="h-3 w-3 inline mr-1" />Copy</button>
+                            <div><p className="text-xs text-muted-foreground">{t('mp_upi_id')}</p><p className="font-mono font-semibold text-sm">{bankDetails.upiId}</p></div>
+                            <button className="text-xs text-primary border border-primary/30 px-2 py-1 rounded" onClick={e => { e.stopPropagation(); handleCopy(bankDetails.upiId, t('mp_upi_id')); }}><Copy className="h-3 w-3 inline mr-1" />{t('mp_copy')}</button>
                           </div>
-                          <Input placeholder="Transaction ID" value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
-                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>Submit</Button>
+                          <Input placeholder={t('mp_transaction_id')} value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
+                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>{t('mp_submit')}</Button>
                         </div>
                       )}
                     </div>
                     <div className={cn('rounded-xl border cursor-pointer', buyPayMethod === 'bank' ? 'border-primary bg-primary/5' : 'border-border')} onClick={() => setBuyPayMethod('bank')}>
-                      <div className="flex items-center gap-3 p-3"><CreditCard className="h-4 w-4" /><div><p className="font-medium text-sm">Bank Transfer</p><p className="text-xs text-muted-foreground">NEFT/IMPS</p></div></div>
+                      <div className="flex items-center gap-3 p-3"><CreditCard className="h-4 w-4" /><div><p className="font-medium text-sm">{t('mp_bank_transfer')}</p><p className="text-xs text-muted-foreground">{t('mp_bank_desc')}</p></div></div>
                       {buyPayMethod === 'bank' && (
                         <div className="px-3 pb-3 space-y-2 border-t border-border pt-2">
                           <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="bg-background rounded p-2"><p className="text-muted-foreground">A/C</p><p className="font-mono font-bold">{bankDetails.accountNumber}</p></div>
-                            <div className="bg-background rounded p-2"><p className="text-muted-foreground">IFSC</p><p className="font-mono font-bold">{bankDetails.ifsc}</p></div>
+                            <div className="bg-background rounded p-2"><p className="text-muted-foreground">{t('mp_ac')}</p><p className="font-mono font-bold">{bankDetails.accountNumber}</p></div>
+                            <div className="bg-background rounded p-2"><p className="text-muted-foreground">{t('mp_ifsc')}</p><p className="font-mono font-bold">{bankDetails.ifsc}</p></div>
                           </div>
-                          <Input placeholder="Transaction Ref" value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
-                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>Submit</Button>
+                          <Input placeholder={t('mp_transaction_ref')} value={manualTxnRef} onChange={e => setManualTxnRef(e.target.value)} onClick={e => e.stopPropagation()} />
+                          <Button className="w-full h-9" onClick={handleManualPayment} disabled={paymentSubmitting || !manualTxnRef.trim() || isProcessing(`PAY_MANUAL_${selectedProduct?.id || ''}`)}>{t('mp_submit')}</Button>
                         </div>
                       )}
                     </div>
@@ -570,30 +572,30 @@ export default function Marketplace() {
             ) : (
               <div className="text-center space-y-4 py-6">
                 <div className="text-5xl">✅</div>
-                <h3 className="text-lg font-black text-foreground">Payment Successful!</h3>
+                <h3 className="text-lg font-black text-foreground">{t('mp_payment_success')}</h3>
                 {generatedLicenseKey && (
                   <div className="bg-muted rounded-xl p-4">
-                    <p className="text-xs text-muted-foreground mb-1">Your License Key</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('mp_your_license_key')}</p>
                     <div className="flex items-center gap-2">
                       <code className="text-sm font-bold text-primary flex-1 break-all">{generatedLicenseKey}</code>
-                      <Button size="sm" variant="outline" onClick={() => handleCopy(generatedLicenseKey, 'License Key')}><Copy className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => handleCopy(generatedLicenseKey, t('mp_your_license_key'))}><Copy className="h-3 w-3" /></Button>
                     </div>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
                   <a href="/keys" className="w-full">
                     <Button className="w-full gap-2" variant="outline">
-                      <Key className="h-4 w-4" /> View My Licenses
+                      <Key className="h-4 w-4" /> {t('mp_view_licenses')}
                     </Button>
                   </a>
                   {downloadUrl && (
                     <a href={downloadUrl} className="w-full">
                       <Button className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white">
-                        <Download className="h-4 w-4" /> Download APK
+                        <Download className="h-4 w-4" /> {t('mp_download_apk')}
                       </Button>
                     </a>
                   )}
-                  <Button variant="ghost" className="w-full" onClick={() => setShowPayment(false)}>Done</Button>
+                  <Button variant="ghost" className="w-full" onClick={() => setShowPayment(false)}>{t('mp_done')}</Button>
                 </div>
               </div>
             )}
