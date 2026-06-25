@@ -76,6 +76,22 @@ export default {
         gold: "hsl(var(--gold))",
         "neon-blue": "hsl(var(--royal-blue-light))",
         "neon-pink": "hsl(var(--secondary))",
+        // Internal Chat module palette
+        graphite: {
+          DEFAULT: "oklch(0.17 0.008 265)",
+          2: "oklch(0.215 0.01 265)",
+        },
+        online: "oklch(0.74 0.16 152)",
+        sapphire: "oklch(0.6 0.18 256)",
+        royal: "oklch(0.55 0.21 295)",
+        "bubble-out": {
+          DEFAULT: "oklch(0.6 0.15 258)",
+          foreground: "oklch(0.98 0.005 255)",
+        },
+        "bubble-in": {
+          DEFAULT: "oklch(0.25 0.022 264)",
+          foreground: "oklch(0.94 0.008 258)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
