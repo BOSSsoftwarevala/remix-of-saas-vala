@@ -108,6 +108,7 @@ const Logout = React.lazy(() => import("./pages/Logout"));
 const ApkPipeline = React.lazy(() => import("./pages/ApkPipeline"));
 const AchievementsAdmin = React.lazy(() => import("./pages/AchievementsAdmin"));
 const AuthorDashboard = React.lazy(() => import("./pages/AuthorDashboard"));
+const InternalChat = React.lazy(() => import("./pages/InternalChat"));
 
 const queryClient = new QueryClient();
 
@@ -636,6 +637,7 @@ function AppRoutes() {
         <Route path="/chat" element={<AuthGuard><Navigate to="/ai-chat" replace /></AuthGuard>} />
         <Route path="/chat/:id" element={<AuthGuard><ChatIdRedirect /></AuthGuard>} />
         <Route path="/ai-chat" element={<AuthGuard><AiChat /></AuthGuard>} />
+        <Route path="/internal-chat" element={<AuthGuard><InternalChat /></AuthGuard>} />
         <Route path="/chat/history" element={<AuthGuard><Navigate to="/ai-chat" replace /></AuthGuard>} />
         <Route path="/saas-ai-dashboard" element={<AuthGuard><SaasAiDashboard /></AuthGuard>} />
         <Route path="/marketplace-admin" element={<AuthGuard><RoleGuard role="super_admin"><Navigate to="/admin/marketplace" replace /></RoleGuard></AuthGuard>} />
