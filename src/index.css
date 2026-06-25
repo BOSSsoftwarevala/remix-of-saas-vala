@@ -721,3 +721,94 @@
   background: hsl(var(--primary) / 0.15);
   color: hsl(var(--foreground));
 }
+
+/* =====================================================================
+   INTERNAL CHAT MODULE — scoped utilities & animations (ported from
+   vanta-chat). Globally registered so Tailwind v3 picks them up.
+   ===================================================================== */
+
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.glass-strong {
+  background: oklch(0.24 0.02 265 / 0.72);
+  backdrop-filter: blur(32px) saturate(150%);
+  -webkit-backdrop-filter: blur(32px) saturate(150%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.glass-darker {
+  background: oklch(0.165 0.018 264 / 0.86);
+  backdrop-filter: blur(32px) saturate(140%);
+  -webkit-backdrop-filter: blur(32px) saturate(140%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.shell-bg {
+  background:
+    radial-gradient(120% 100% at 100% 0%, oklch(0.88 0.18 124 / 0.06), transparent 55%),
+    linear-gradient(160deg, oklch(0.945 0.003 250), oklch(0.91 0.003 250));
+}
+.chat-texture {
+  background-color: oklch(0.93 0.003 250);
+  background-image:
+    radial-gradient(120% 90% at 100% 0%, oklch(0.6 0.16 262 / 0.05), transparent 45%),
+    radial-gradient(120% 90% at 0% 100%, oklch(0.55 0.14 295 / 0.045), transparent 45%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+}
+.dark .chat-texture { background-color: oklch(0.165 0.018 264); }
+
+.text-gradient {
+  background: linear-gradient(135deg, oklch(0.9 0.19 124), oklch(0.84 0.17 138));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.text-gradient-multi {
+  background: linear-gradient(120deg, oklch(0.9 0.19 124), oklch(0.85 0.18 132) 55%, oklch(0.82 0.16 145));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+.scrollbar-thin { scrollbar-width: thin; }
+.scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(120,120,140,0.35); border-radius: 999px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+
+@keyframes ic-bubble-in { 0% { opacity: 0; transform: translateY(8px) scale(0.97); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes ic-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes ic-pulse-ring { 0% { box-shadow: 0 0 0 0 oklch(0.72 0.17 152 / 0.5); } 100% { box-shadow: 0 0 0 6px oklch(0.72 0.17 152 / 0); } }
+@keyframes ic-popover-in { 0% { opacity: 0; transform: translateY(10px) scale(0.94); filter: blur(8px); } 60% { filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+@keyframes ic-stagger { 0% { opacity: 0; transform: translateY(8px) scale(0.9); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes ic-glow-pulse { 0%, 100% { box-shadow: 0 0 0 0 oklch(0.6 0.18 256 / 0); } 50% { box-shadow: 0 0 26px -2px oklch(0.6 0.18 256 / 0.45); } }
+@keyframes ic-float-up { 0% { opacity: 0; transform: translateY(14px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes ic-msg-receive { 0% { opacity: 0; transform: translateX(-14px) scale(0.97); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes ic-msg-send { 0% { opacity: 0; transform: translateX(14px) scale(0.97); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes ic-panel-in { 0% { opacity: 0; transform: translateX(24px); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes ic-panel-card { 0% { opacity: 0; transform: translateY(12px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes ic-send-kick { 0% { transform: scale(1); } 40% { transform: scale(0.88) rotate(-8deg); } 100% { transform: scale(1) rotate(0deg); } }
+@keyframes ic-badge-pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 oklch(0.72 0.17 152 / 0.55); } 50% { transform: scale(1.08); box-shadow: 0 0 0 5px oklch(0.72 0.17 152 / 0); } }
+@keyframes ic-sticker-bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-18%);} }
+@keyframes ic-sticker-spin { 0%{transform:rotate(0);} 100%{transform:rotate(360deg);} }
+@keyframes ic-sticker-shake { 0%,100%{transform:translateX(0) rotate(0);} 25%{transform:translateX(-10%) rotate(-7deg);} 75%{transform:translateX(10%) rotate(7deg);} }
+@keyframes ic-sticker-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.85;} }
+@keyframes ic-sticker-float { 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-16%) rotate(3deg);} }
+
+.animate-bubble-in { animation: ic-bubble-in .32s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-pop { animation: ic-pop .28s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-pulse-ring { animation: ic-pulse-ring 1.8s ease-out infinite; }
+.animate-popover-in { animation: ic-popover-in .34s cubic-bezier(0.22,1.4,0.36,1) both; }
+.stagger-item { animation: ic-stagger .3s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-glow-pulse { animation: ic-glow-pulse 2.6s ease-in-out infinite; }
+.animate-float-up { animation: ic-float-up .5s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-msg-receive { animation: ic-msg-receive .36s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-msg-send { animation: ic-msg-send .36s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-panel-in { animation: ic-panel-in .5s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-panel-card { animation: ic-panel-card .45s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-send-kick { animation: ic-send-kick .3s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-badge-pulse { animation: ic-badge-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+.anim-bounce { animation: ic-sticker-bounce 1s ease-in-out infinite; }
+.anim-spin { animation: ic-sticker-spin 2.4s linear infinite; }
+.anim-shake { animation: ic-sticker-shake .7s ease-in-out infinite; }
+.anim-pulse { animation: ic-sticker-pulse 1.4s ease-in-out infinite; }
+.anim-float { animation: ic-sticker-float 2.2s ease-in-out infinite; }
+.anim-pop { animation: ic-pop .45s cubic-bezier(0.34,1.56,0.64,1) both; }

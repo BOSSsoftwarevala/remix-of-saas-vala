@@ -39,7 +39,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/products',
     allowedHrefs: [
       '/dashboard', '/products', '/keys', '/dashboard/downloads',
-      '/favorites', '/recent', '/support', '/feedback', '/announcements',
+      '/favorites', '/recent', '/support', '/feedback', '/internal-chat', '/announcements', '/internal-chat',
     ],
     sections: ['core'],
     allowDestructive: false,
@@ -53,7 +53,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/servers',
     allowedHrefs: [
       '/dashboard', '/servers', '/system-health', '/auto-pilot',
-      '/auto-pilot/apk-pipeline', '/recent', '/support', '/announcements',
+      '/auto-pilot/apk-pipeline', '/recent', '/support', '/announcements', '/internal-chat',
     ],
     sections: ['core', 'admin'],
     allowDestructive: false,
@@ -67,7 +67,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/marketplace',
     allowedHrefs: [
       '/dashboard', '/dashboard/downloads', '/favorites', '/recent',
-      '/wallet', '/support', '/feedback', '/announcements',
+      '/wallet', '/support', '/feedback', '/internal-chat', '/announcements', '/internal-chat',
     ],
     sections: ['core'],
     allowDestructive: false,
@@ -81,7 +81,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/reseller-manager',
     allowedHrefs: [
       '/dashboard', '/reseller-manager', '/keys', '/wallet',
-      '/audit-logs', '/support', '/announcements',
+      '/audit-logs', '/support', '/announcements', '/internal-chat',
     ],
     sections: ['core', 'admin'],
     allowDestructive: false,
@@ -95,7 +95,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/reseller-dashboard',
     allowedHrefs: [
       '/dashboard', '/reseller-dashboard', '/keys', '/wallet',
-      '/dashboard/downloads', '/support', '/feedback',
+      '/dashboard/downloads', '/support', '/feedback', '/internal-chat',
     ],
     sections: ['core'],
     allowDestructive: false,
@@ -108,7 +108,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     accent: '190 85% 48%',
     landing: '/seo-leads',
     allowedHrefs: [
-      '/dashboard', '/seo-leads', '/announcements', '/recent', '/support',
+      '/dashboard', '/seo-leads', '/announcements', '/recent', '/support', '/internal-chat',
     ],
     sections: ['marketing', 'core'],
     allowDestructive: false,
@@ -122,7 +122,7 @@ export const ROLE_CONFIGS: Record<RoleViewKey, RoleConfig> = {
     landing: '/author',
     allowedHrefs: [
       '/author', '/dashboard', '/products', '/keys', '/wallet',
-      '/dashboard/downloads', '/support', '/feedback', '/announcements',
+      '/dashboard/downloads', '/support', '/feedback', '/internal-chat', '/announcements', '/internal-chat',
       '/admin/achievements',
     ],
     sections: ['author', 'core'],
