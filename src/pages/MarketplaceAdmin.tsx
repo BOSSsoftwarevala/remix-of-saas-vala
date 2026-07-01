@@ -343,6 +343,7 @@ const Field = ({
 
 export default function MarketplaceAdmin() {
   const location = useLocation();
+  const searchTab = new URLSearchParams(location.search).get('tab');
   const { user } = useAuth();
   const path = location.pathname.toLowerCase();
   const pathTabMappings: Array<{ suffix: string; tab: string }> = [
@@ -355,7 +356,7 @@ export default function MarketplaceAdmin() {
     { suffix: '/pricing', tab: 'payments' },
     { suffix: '/analytics', tab: 'payments' },
   ];
-  const initialTab = pathTabMappings.find(({ suffix }) => path.endsWith(suffix))?.tab || 'settings';
+  const initialTab = searchTab || pathTabMappings.find(({ suffix }) => path.endsWith(suffix))?.tab || 'settings';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [productCatalog, setProductCatalog] = useState<Array<{ id: string; name: string; status: string; apk_enabled: boolean }>>([]);
