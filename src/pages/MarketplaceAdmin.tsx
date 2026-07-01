@@ -52,6 +52,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
+import { MaestroPanel } from '@/components/marketplace-admin/MaestroPanel';
 
 const db = supabase as any;
 const PAGE_SIZE = 25;
@@ -1267,13 +1268,14 @@ export default function MarketplaceAdmin() {
         </div>
 
         <Tabs key={initialTab} defaultValue={initialTab} className="w-full">
-          <TabsList className="grid h-10 w-full grid-cols-6">
+          <TabsList className="grid h-10 w-full grid-cols-7">
             <TabsTrigger value="settings" className="text-[10px] gap-1"><Layout className="h-3 w-3" />Settings</TabsTrigger>
             <TabsTrigger value="products" className="text-[10px] gap-1"><Package className="h-3 w-3" />Products</TabsTrigger>
             <TabsTrigger value="apk" className="text-[10px] gap-1"><Truck className="h-3 w-3" />APK</TabsTrigger>
             <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard className="h-3 w-3" />Payments</TabsTrigger>
             <TabsTrigger value="offers" className="text-[10px] gap-1"><Tags className="h-3 w-3" />Offers</TabsTrigger>
             <TabsTrigger value="bulk" className="text-[10px] gap-1"><RefreshCw className="h-3 w-3" />Bulk</TabsTrigger>
+            <TabsTrigger value="maestro" className="text-[10px] gap-1"><Menu className="h-3 w-3" />Maestro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings" className="space-y-4 mt-4">
