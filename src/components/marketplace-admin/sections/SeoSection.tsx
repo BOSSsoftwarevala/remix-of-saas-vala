@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+const useServerFn = <T,>(fn: T): T => fn;
 import {
   Sparkles,
   Globe2,
