@@ -68,6 +68,7 @@ const navItems: NavItem[] = [
   { title: 'Feedback', i18nKey: 'nav_feedback', icon: MessageCircle, href: '/feedback', section: 'core' },
   { title: 'Announcements', i18nKey: 'nav_announcements', icon: BellRing, href: '/announcements', section: 'core' },
   { title: 'Internal Chat', i18nKey: 'nav_internal_chat', icon: MessagesSquare, href: '/internal-chat', section: 'core' },
+  { title: 'Marketplace Maestro', i18nKey: 'nav_marketplace_maestro', icon: Store, href: '/admin/marketplace?tab=maestro', adminOnly: true, section: 'core' },
 
   { title: 'Resellers', i18nKey: 'nav_resellers', icon: UsersRound, href: '/reseller-manager', activePaths: ['/reseller-manager', '/resellers'], adminOnly: true, section: 'admin' },
   { title: 'Marketplace', i18nKey: 'nav_marketplace', icon: Store, href: '/admin/marketplace', adminOnly: true, section: 'admin' },

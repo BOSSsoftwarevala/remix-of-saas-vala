@@ -76,6 +76,12 @@ export default {
         gold: "hsl(var(--gold))",
         "neon-blue": "hsl(var(--royal-blue-light))",
         "neon-pink": "hsl(var(--secondary))",
+        // Marketplace Maestro palette
+        premium: {
+          DEFAULT: "hsl(var(--premium, 45 96% 58%))",
+          foreground: "hsl(var(--premium-foreground, 220 40% 8%))",
+        },
+        "cyan-glow": "hsl(var(--cyan, 189 94% 62%))",
         // Internal Chat module palette
         graphite: {
           DEFAULT: "oklch(0.17 0.008 265)",

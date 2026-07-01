@@ -759,6 +759,24 @@
 }
 .dark .chat-texture { background-color: oklch(0.165 0.018 264); }
 
+/* =====================================================================
+   MARKETPLACE MAESTRO — scoped tokens & utilities
+   ===================================================================== */
+:root {
+  --premium: 45 96% 58%;
+  --premium-foreground: 220 40% 8%;
+  --cyan: 189 94% 62%;
+  --gradient-premium: linear-gradient(135deg, hsl(var(--premium)) 0%, hsl(38 92% 50%) 100%);
+  --shadow-premium: 0 12px 30px -12px hsl(var(--premium) / 0.55), inset 0 1px 0 hsl(0 0% 100% / 0.25);
+}
+.tabular { font-variant-numeric: tabular-nums; }
+.scroll-row::-webkit-scrollbar { height: 0; }
+.ring-rim { box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08); }
+.bg-premium { background-color: hsl(var(--premium)); }
+.text-premium { color: hsl(var(--premium)); }
+.border-premium { border-color: hsl(var(--premium)); }
+.text-cyan-glow { color: hsl(var(--cyan)); text-shadow: 0 0 12px hsl(var(--cyan) / 0.6); }
+
 .text-gradient {
   background: linear-gradient(135deg, oklch(0.9 0.19 124), oklch(0.84 0.17 138));
   -webkit-background-clip: text; background-clip: text; color: transparent;
