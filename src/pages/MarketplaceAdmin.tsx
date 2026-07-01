@@ -1740,6 +1740,10 @@ export default function MarketplaceAdmin() {
             </div>
             {bulkRunning && <p className="text-xs text-muted-foreground flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />Processing bulk action...</p>}
           </TabsContent>
+
+          <TabsContent value="maestro" className="mt-4">
+            <MaestroPanel />
+          </TabsContent>
         </Tabs>
       </div>
 
