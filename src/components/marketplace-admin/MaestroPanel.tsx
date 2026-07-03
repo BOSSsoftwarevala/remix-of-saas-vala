@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { SubNav } from "./ui";
 import { DashboardSection } from "./sections/DashboardSection";
 import {
@@ -35,52 +36,102 @@ import {
   NotificationsSection,
   LayoutOrderSection,
 } from "./sections";
+import { useAuth } from "@/hooks/useAuth";
+import { useRoleView } from "@/contexts/RoleViewContext";
+import {
+  MAESTRO_I18N_KEYS,
+  canSeeMaestroSection,
+  resolveEffectiveRole,
+  type MaestroSectionKey,
+} from "@/lib/marketplaceAdminPermissions";
 
-const SECTIONS: { label: string; group: string; el: ReactNode }[] = [
-  { label: "Dashboard", group: "Overview", el: <DashboardSection /> },
-  { label: "Hero Banners", group: "Storefront", el: <HeroBannerSection /> },
-  { label: "Categories", group: "Storefront", el: <CategoriesSection /> },
-  { label: "Walls", group: "Storefront", el: <WallsSection /> },
-  { label: "Homepage Rows", group: "Storefront", el: <HomepageRowsSection /> },
-  { label: "Placement", group: "Storefront", el: <PlacementSection /> },
-  { label: "Top Bar", group: "Storefront", el: <StorefrontTopBarSection /> },
-  { label: "Top Bar Manager", group: "Storefront", el: <TopBarManagerSection /> },
-  { label: "Footer", group: "Storefront", el: <FooterSection /> },
-  { label: "Filters", group: "Storefront", el: <FiltersSection /> },
-  { label: "Layout Order", group: "Storefront", el: <LayoutOrderSection /> },
-  { label: "Card Manager", group: "Cards", el: <CardManagerSection /> },
-  { label: "Cards", group: "Cards", el: <CardsSection /> },
-  { label: "Actions", group: "Growth", el: <ActionsSection /> },
-  { label: "Offers", group: "Growth", el: <OffersSection /> },
-  { label: "Popups", group: "Growth", el: <PopupsSection /> },
-  { label: "Partners", group: "Trust", el: <PartnersSection /> },
-  { label: "Trust", group: "Trust", el: <TrustSection /> },
-  { label: "Reviews", group: "Trust", el: <ReviewsSection /> },
-  { label: "FAQ", group: "Support", el: <FaqSection /> },
-  { label: "Contact", group: "Support", el: <ContactSection /> },
-  { label: "Search", group: "Discovery", el: <SearchSection /> },
-  { label: "AI Assistant", group: "AI", el: <AiSection /> },
-  { label: "Sticky", group: "UX", el: <StickySection /> },
-  { label: "Upcoming", group: "UX", el: <UpcomingSection /> },
-  { label: "Notifications", group: "UX", el: <NotificationsSection /> },
-  { label: "Analytics", group: "Insights", el: <AnalyticsSection /> },
-  { label: "SEO", group: "Ops", el: <SeoSection /> },
-  { label: "Deployment", group: "Ops", el: <DeploymentSection /> },
-  { label: "Integrity", group: "Ops", el: <IntegritySection /> },
-  { label: "Micro Features", group: "Ops", el: <MicroFeaturesSection /> },
-  { label: "Toolkit", group: "Ops", el: <ToolkitSection /> },
-  { label: "Settings", group: "Ops", el: <SettingsSection /> },
+const SECTION_MAP: Record<MaestroSectionKey, ReactNode> = {
+  dashboard: <DashboardSection />,
+  hero_banners: <HeroBannerSection />,
+  categories: <CategoriesSection />,
+  walls: <WallsSection />,
+  homepage_rows: <HomepageRowsSection />,
+  placement: <PlacementSection />,
+  top_bar: <StorefrontTopBarSection />,
+  top_bar_manager: <TopBarManagerSection />,
+  footer: <FooterSection />,
+  filters: <FiltersSection />,
+  layout_order: <LayoutOrderSection />,
+  card_manager: <CardManagerSection />,
+  cards: <CardsSection />,
+  actions: <ActionsSection />,
+  offers: <OffersSection />,
+  popups: <PopupsSection />,
+  partners: <PartnersSection />,
+  trust: <TrustSection />,
+  reviews: <ReviewsSection />,
+  faq: <FaqSection />,
+  contact: <ContactSection />,
+  search: <SearchSection />,
+  ai: <AiSection />,
+  sticky: <StickySection />,
+  upcoming: <UpcomingSection />,
+  notifications: <NotificationsSection />,
+  analytics: <AnalyticsSection />,
+  seo: <SeoSection />,
+  deployment: <DeploymentSection />,
+  integrity: <IntegritySection />,
+  micro_features: <MicroFeaturesSection />,
+  toolkit: <ToolkitSection />,
+  settings: <SettingsSection />,
+};
+
+const SECTION_ORDER: MaestroSectionKey[] = [
+  'dashboard', 'hero_banners', 'categories', 'walls', 'homepage_rows',
+  'placement', 'top_bar', 'top_bar_manager', 'footer', 'filters',
+  'layout_order', 'card_manager', 'cards', 'actions', 'offers', 'popups',
+  'partners', 'trust', 'reviews', 'faq', 'contact', 'search', 'ai',
+  'sticky', 'upcoming', 'notifications', 'analytics', 'seo', 'deployment',
+  'integrity', 'micro_features', 'toolkit', 'settings',
 ];
 
 export function MaestroPanel() {
-  const [active, setActive] = useState(SECTIONS[0].label);
-  const current = SECTIONS.find((s) => s.label === active) ?? SECTIONS[0];
+  const { t } = useTranslation();
+  const { role } = useAuth();
+  const { override } = useRoleView();
+  const effective = resolveEffectiveRole(role, override);
+
+  const visible = useMemo(
+    () => SECTION_ORDER.filter((k) => canSeeMaestroSection(effective, k)),
+    [effective],
+  );
+
+  const labelFor = (k: MaestroSectionKey) => {
+    const meta = MAESTRO_I18N_KEYS[k];
+    return t(meta.key, { defaultValue: meta.fallback });
+  };
+
+  const [active, setActive] = useState<MaestroSectionKey>(visible[0] ?? 'dashboard');
+  const current: MaestroSectionKey = visible.includes(active) ? active : (visible[0] ?? 'dashboard');
+
+  if (visible.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-background/40 p-8 text-center text-sm text-muted-foreground">
+        {t('ma_no_access', { defaultValue: 'You do not have access to any Maestro section for this role.' })}
+      </div>
+    );
+  }
+
+  const labelToKey = new Map(visible.map((k) => [labelFor(k), k] as const));
+
   return (
     <div data-mm className="rounded-2xl border border-border bg-background/40">
       <div className="border-b border-border px-4 pt-3">
-        <SubNav items={SECTIONS.map((s) => s.label)} active={active} onChange={setActive} />
+        <SubNav
+          items={visible.map(labelFor)}
+          active={labelFor(current)}
+          onChange={(label) => {
+            const key = labelToKey.get(label);
+            if (key) setActive(key);
+          }}
+        />
       </div>
-      <div className="min-h-[60vh]">{current.el}</div>
+      <div className="min-h-[60vh]">{SECTION_MAP[current]}</div>
     </div>
   );
 }

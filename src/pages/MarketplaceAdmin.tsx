@@ -53,6 +53,14 @@ import {
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 import { MaestroPanel } from '@/components/marketplace-admin/MaestroPanel';
+import { useTranslation } from 'react-i18next';
+import { useRoleView } from '@/contexts/RoleViewContext';
+import {
+  TAB_I18N_KEYS,
+  canSeeTab,
+  resolveEffectiveRole,
+  type MarketplaceAdminTabKey,
+} from '@/lib/marketplaceAdminPermissions';
 
 const db = supabase as any;
 const PAGE_SIZE = 25;
@@ -344,7 +352,24 @@ const Field = ({
 export default function MarketplaceAdmin() {
   const location = useLocation();
   const searchTab = new URLSearchParams(location.search).get('tab');
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const { override } = useRoleView();
+  const { t } = useTranslation();
+  const effectiveRole = resolveEffectiveRole(role, override);
+  const tabLabel = (k: MarketplaceAdminTabKey) => {
+    const meta = TAB_I18N_KEYS[k];
+    return t(meta.key, { defaultValue: meta.fallback });
+  };
+  const ALL_TABS: Array<{ key: MarketplaceAdminTabKey; icon: JSX.Element }> = [
+    { key: 'settings', icon: <Layout className="h-3 w-3" /> },
+    { key: 'products', icon: <Package className="h-3 w-3" /> },
+    { key: 'apk',      icon: <Truck className="h-3 w-3" /> },
+    { key: 'payments', icon: <CreditCard className="h-3 w-3" /> },
+    { key: 'offers',   icon: <Tags className="h-3 w-3" /> },
+    { key: 'bulk',     icon: <RefreshCw className="h-3 w-3" /> },
+    { key: 'maestro',  icon: <Menu className="h-3 w-3" /> },
+  ];
+  const visibleTabs = ALL_TABS.filter((t) => canSeeTab(effectiveRole, t.key));
   const path = location.pathname.toLowerCase();
   const pathTabMappings: Array<{ suffix: string; tab: string }> = [
     { suffix: '/apk', tab: 'apk' },
@@ -356,7 +381,10 @@ export default function MarketplaceAdmin() {
     { suffix: '/pricing', tab: 'payments' },
     { suffix: '/analytics', tab: 'payments' },
   ];
-  const initialTab = searchTab || pathTabMappings.find(({ suffix }) => path.endsWith(suffix))?.tab || 'settings';
+  const requestedTab = searchTab || pathTabMappings.find(({ suffix }) => path.endsWith(suffix))?.tab || 'settings';
+  const initialTab = (visibleTabs.some((t) => t.key === requestedTab)
+    ? requestedTab
+    : visibleTabs[0]?.key ?? 'settings');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [productCatalog, setProductCatalog] = useState<Array<{ id: string; name: string; status: string; apk_enabled: boolean }>>([]);
@@ -1269,15 +1297,22 @@ export default function MarketplaceAdmin() {
         </div>
 
         <Tabs key={initialTab} defaultValue={initialTab} className="w-full">
-          <TabsList className="grid h-10 w-full grid-cols-7">
-            <TabsTrigger value="settings" className="text-[10px] gap-1"><Layout className="h-3 w-3" />Settings</TabsTrigger>
-            <TabsTrigger value="products" className="text-[10px] gap-1"><Package className="h-3 w-3" />Products</TabsTrigger>
-            <TabsTrigger value="apk" className="text-[10px] gap-1"><Truck className="h-3 w-3" />APK</TabsTrigger>
-            <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard className="h-3 w-3" />Payments</TabsTrigger>
-            <TabsTrigger value="offers" className="text-[10px] gap-1"><Tags className="h-3 w-3" />Offers</TabsTrigger>
-            <TabsTrigger value="bulk" className="text-[10px] gap-1"><RefreshCw className="h-3 w-3" />Bulk</TabsTrigger>
-            <TabsTrigger value="maestro" className="text-[10px] gap-1"><Menu className="h-3 w-3" />Maestro</TabsTrigger>
+          <TabsList
+            className="grid h-10 w-full"
+            style={{ gridTemplateColumns: `repeat(${Math.max(visibleTabs.length, 1)}, minmax(0, 1fr))` }}
+          >
+            {visibleTabs.map(({ key, icon }) => (
+              <TabsTrigger key={key} value={key} className="text-[10px] gap-1">
+                {icon}
+                {tabLabel(key)}
+              </TabsTrigger>
+            ))}
           </TabsList>
+          {visibleTabs.length === 0 && (
+            <div className="mt-6 rounded-lg border border-border bg-card p-6 text-center text-xs text-muted-foreground">
+              {t('ma_no_access', { defaultValue: 'You do not have access to the marketplace admin for this role.' })}
+            </div>
+          )}
 
           <TabsContent value="settings" className="space-y-4 mt-4">
             <div className="rounded-lg border border-border bg-card p-3 space-y-3">
