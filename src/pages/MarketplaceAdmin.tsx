@@ -53,6 +53,14 @@ import {
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/services/apiClient';
 import { MaestroPanel } from '@/components/marketplace-admin/MaestroPanel';
+import { useTranslation } from 'react-i18next';
+import { useRoleView } from '@/contexts/RoleViewContext';
+import {
+  TAB_I18N_KEYS,
+  canSeeTab,
+  resolveEffectiveRole,
+  type MarketplaceAdminTabKey,
+} from '@/lib/marketplaceAdminPermissions';
 
 const db = supabase as any;
 const PAGE_SIZE = 25;
@@ -344,7 +352,24 @@ const Field = ({
 export default function MarketplaceAdmin() {
   const location = useLocation();
   const searchTab = new URLSearchParams(location.search).get('tab');
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const { override } = useRoleView();
+  const { t } = useTranslation();
+  const effectiveRole = resolveEffectiveRole(role, override);
+  const tabLabel = (k: MarketplaceAdminTabKey) => {
+    const meta = TAB_I18N_KEYS[k];
+    return t(meta.key, { defaultValue: meta.fallback });
+  };
+  const ALL_TABS: Array<{ key: MarketplaceAdminTabKey; icon: JSX.Element }> = [
+    { key: 'settings', icon: <Layout className="h-3 w-3" /> },
+    { key: 'products', icon: <Package className="h-3 w-3" /> },
+    { key: 'apk',      icon: <Truck className="h-3 w-3" /> },
+    { key: 'payments', icon: <CreditCard className="h-3 w-3" /> },
+    { key: 'offers',   icon: <Tags className="h-3 w-3" /> },
+    { key: 'bulk',     icon: <RefreshCw className="h-3 w-3" /> },
+    { key: 'maestro',  icon: <Menu className="h-3 w-3" /> },
+  ];
+  const visibleTabs = ALL_TABS.filter((t) => canSeeTab(effectiveRole, t.key));
   const path = location.pathname.toLowerCase();
   const pathTabMappings: Array<{ suffix: string; tab: string }> = [
     { suffix: '/apk', tab: 'apk' },
