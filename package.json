@@ -28,7 +28,9 @@
     "ultra:detect": "npm run monitor:run && npm run alert:run && npm run test:db",
     "ultra:fix": "npm run selfheal:run",
     "ultra:retest": "npm run test:api && npm run test:realtime",
-    "ultra:loop": "node scripts/ultra-next/continuous-loop.mjs"
+    "ultra:loop": "node scripts/ultra-next/continuous-loop.mjs",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "check:exports": "vitest run src/test/marketplace-admin-exports.test.ts"
   },
   "dependencies": {
     "@elevenlabs/react": "^0.14.0",
