@@ -1,0 +1,57 @@
+name: E2E — MarketplaceAdmin Role Access
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-marketplace-admin-roles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    name: "🎭 Playwright — marketplace-admin-roles"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      E2E_BASE_URL: http://127.0.0.1:4173
+      E2E_SUPER_ADMIN_EMAIL: ${{ secrets.E2E_SUPER_ADMIN_EMAIL }}
+      E2E_SUPER_ADMIN_PASSWORD: ${{ secrets.E2E_SUPER_ADMIN_PASSWORD }}
+      E2E_RESELLER_EMAIL: ${{ secrets.E2E_RESELLER_EMAIL }}
+      E2E_RESELLER_PASSWORD: ${{ secrets.E2E_RESELLER_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run marketplace-admin-roles spec
+        run: npx playwright test tests/e2e/marketplace-admin-roles.spec.ts --project=chromium --reporter=list
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-marketplace-admin-roles
+          path: |
+            e2e/reports/
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
