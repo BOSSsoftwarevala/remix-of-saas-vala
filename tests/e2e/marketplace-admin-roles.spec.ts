@@ -81,14 +81,26 @@ test.describe('MarketplaceAdmin role-based tab visibility', () => {
     test.skip(!RESELLER_EMAIL || !RESELLER_PASSWORD, 'E2E_RESELLER_EMAIL / PASSWORD not set');
 
     await signIn(page, RESELLER_EMAIL!, RESELLER_PASSWORD!);
-    await page.goto('/admin/marketplace');
 
-    // RoleGuard redirects non-super_admin away — must not stay on the admin URL.
-    await expect(page).not.toHaveURL(/\/admin\/marketplace(\?|$|\/)/);
-
-    // The forbidden Maestro tab must not have leaked into the DOM.
-    await expect(page.getByRole('tab', { name: /maestro/i })).toHaveCount(0);
-    await expect(page.getByRole('tab', { name: /settings/i })).toHaveCount(0);
+    // Directly visit every super_admin-only surface — RoleGuard must redirect
+    // away and no restricted tab may render.
+    const blockedRoutes = [
+      '/admin/marketplace',
+      '/admin/marketplace?tab=maestro',
+      '/admin/marketplace/apk',
+      '/admin/marketplace/analytics',
+    ];
+    for (const route of blockedRoutes) {
+      await page.goto(route);
+      await expect(page, `reseller must not stay on ${route}`)
+        .not.toHaveURL(/\/admin\/marketplace(\?|$|\/)/);
+      for (const key of ['maestro', 'settings', 'payments'] as const) {
+        await expect(
+          page.getByRole('tab', { name: new RegExp(tabLabel(key), 'i') }),
+          `reseller must not see restricted tab ${key} after visiting ${route}`,
+        ).toHaveCount(0);
+      }
+    }
   });
 
   test('permission table stays in sync with i18n keys', async () => {
@@ -99,5 +111,27 @@ test.describe('MarketplaceAdmin role-based tab visibility', () => {
     // Reseller must never gain super-admin-only surfaces via a regression.
     expect(TAB_PERMISSIONS.reseller).not.toContain('maestro');
     expect(TAB_PERMISSIONS.reseller).not.toContain('settings');
+  });
+
+  test('rendered tab labels match the en locale translations for Super Admin', async ({ page, request }) => {
+    test.skip(!SUPER_EMAIL || !SUPER_PASSWORD, 'E2E_SUPER_ADMIN_EMAIL / PASSWORD not set');
+
+    // Load the shipped translation bundle so the assertions are driven by the
+    // same source the app renders from.
+    const res = await request.get('/locales/en/common.json');
+    expect(res.ok(), 'en/common.json must be served').toBeTruthy();
+    const messages = (await res.json()) as Record<string, string>;
+
+    await signIn(page, SUPER_EMAIL!, SUPER_PASSWORD!);
+    await page.goto('/admin/marketplace');
+
+    for (const key of TAB_PERMISSIONS.super_admin) {
+      const { key: i18nKey, fallback } = TAB_I18N_KEYS[key];
+      const expected = messages[i18nKey] ?? fallback;
+      await expect(
+        page.getByRole('tab', { name: new RegExp(`^${expected}$`, 'i') }),
+        `tab "${key}" must render its en label "${expected}"`,
+      ).toBeVisible();
+    }
   });
 });
