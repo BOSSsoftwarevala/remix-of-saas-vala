@@ -533,6 +533,15 @@ export default function Auth() {
                     className="space-y-5"
                   >
  
+                    {diagnostics && (
+                      <AuthDiagnosticsPanel
+                        diagnostics={diagnostics}
+                        onRetry={() => setDiagnostics(null)}
+                        onUseProxy={handleProxyLogin}
+                        proxying={proxying}
+                      />
+                    )}
+
                     {/* Email */}
                    <div className="space-y-2">
                      <Label htmlFor="login-email" className="text-foreground text-sm">Email</Label>
@@ -726,12 +735,24 @@ export default function Auth() {
                           disabled={isSubmitting || !forgotEmail}
                           onClick={async () => {
                             setIsSubmitting(true);
-                            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-                              redirectTo: `${window.location.origin}/auth`,
-                            });
+                            let errMsg: string | null = null;
+                            try {
+                              const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+                                redirectTo: `${window.location.origin}/auth`,
+                              });
+                              errMsg = error?.message ?? null;
+                              if (error && isFetchFailure(error)) {
+                                // Fall back to server-side proxy
+                                const res = await proxyRecover(forgotEmail);
+                                errMsg = res.error;
+                              }
+                            } catch (err) {
+                              const res = await proxyRecover(forgotEmail);
+                              errMsg = res.error ?? (err as Error).message;
+                            }
                             setIsSubmitting(false);
-                            if (error) {
-                              toast({ variant: 'destructive', title: 'Error', description: error.message });
+                            if (errMsg) {
+                              toast({ variant: 'destructive', title: 'Error', description: `/auth/v1/recover — ${errMsg}` });
                             } else {
                               setResetSent(true);
                               toast({ title: 'Email sent', description: 'Check your inbox for password reset instructions.' });
