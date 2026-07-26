@@ -15,6 +15,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
 import { useResellerApplications } from '@/hooks/useResellerApplications';
 import { consumePostLoginRedirect } from '@/lib/sessionState';
+import { checkAuthConnectivity, isFetchFailure, proxySignIn, proxyRecover } from '@/lib/authHealth';
+import { AuthDiagnosticsPanel, type AuthDiagnostics } from '@/components/auth/AuthDiagnosticsPanel';
+import { supabase as _sb } from '@/integrations/supabase/client';
  
  const loginSchema = z.object({
    email: z.string().email('Please enter a valid email address'),
@@ -51,6 +54,9 @@ export default function Auth() {
   const [show2FA, setShow2FA] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  const [diagnostics, setDiagnostics] = useState<AuthDiagnostics | null>(null);
+  const [proxying, setProxying] = useState(false);
+  const [healthChecked, setHealthChecked] = useState(false);
  
    // Login form state
    const [loginEmail, setLoginEmail] = useState('');
@@ -70,6 +76,45 @@ export default function Auth() {
   const [applyNotes, setApplyNotes] = useState('');
   const { myApplications, submitApplication } = useResellerApplications();
  
+  // Pre-login connectivity probe — surfaces adblock/network blocks before the user submits.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const result = await checkAuthConnectivity();
+      if (cancelled) return;
+      setHealthChecked(true);
+      if (!result.ok) {
+        setDiagnostics({
+          endpoint: result.endpoint,
+          message: result.blocked
+            ? 'Request was blocked before reaching the server (ad-blocker, firewall, or offline).'
+            : `Health check failed${result.status ? ` (HTTP ${result.status})` : ''}.`,
+          kind: result.blocked ? 'adblock' : 'network',
+          healthBlocked: true,
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const buildDiagnostics = (err: Error, hint: 'token' | 'recover'): AuthDiagnostics => {
+    const endpoint = `/auth/v1/${hint === 'token' ? 'token?grant_type=password' : 'recover'}`;
+    if (isFetchFailure(err)) {
+      return {
+        endpoint,
+        message: 'Browser blocked the request before it reached the server.',
+        kind: 'adblock',
+      };
+    }
+    if (/invalid.*credentials|invalid login/i.test(err.message)) {
+      return { endpoint, message: err.message, kind: 'credentials' };
+    }
+    if (/cors|blocked by/i.test(err.message)) {
+      return { endpoint, message: err.message, kind: 'cors' };
+    }
+    return { endpoint, message: err.message || 'Unknown error', kind: 'unknown' };
+  };
+
    // Redirect based on role after login
   useEffect(() => {
     if (user && role && !loading) {
@@ -97,6 +142,7 @@ export default function Auth() {
    const handleLogin = async (e: React.FormEvent) => {
      e.preventDefault();
      setLoginErrors({});
+    setDiagnostics(null);
  
      const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
      if (!result.success) {
@@ -111,22 +157,51 @@ export default function Auth() {
      }
  
      setIsSubmitting(true);
-     const { error } = await signIn(loginEmail, loginPassword);
-     setIsSubmitting(false);
- 
-     if (error) {
-       toast({
-         variant: 'destructive',
-         title: 'Login failed',
-         description: error.message || 'Invalid email or password',
-       });
-     } else {
+    let error: Error | null = null;
+    try {
+      const res = await signIn(loginEmail, loginPassword);
+      error = res.error;
+    } catch (err) {
+      error = err as Error;
+    }
+    setIsSubmitting(false);
+
+    if (error) {
+      const diag = buildDiagnostics(error, 'token');
+      setDiagnostics(diag);
+      toast({
+        variant: 'destructive',
+        title: 'Login failed',
+        description: `${diag.endpoint} — ${diag.message}`,
+      });
+    } else {
        toast({
          title: 'Welcome back!',
          description: 'You have been logged in successfully.',
        });
      }
    };
+
+  const handleProxyLogin = async () => {
+    if (!loginEmail || !loginPassword) return;
+    setProxying(true);
+    const { session, error } = await proxySignIn(loginEmail, loginPassword);
+    setProxying(false);
+    if (error || !session?.access_token) {
+      toast({ variant: 'destructive', title: 'Proxy login failed', description: error || 'No session returned' });
+      return;
+    }
+    const { error: setErr } = await _sb.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+    if (setErr) {
+      toast({ variant: 'destructive', title: 'Session error', description: setErr.message });
+      return;
+    }
+    setDiagnostics(null);
+    toast({ title: 'Signed in via proxy', description: 'Routed around the blocked endpoint.' });
+  };
  
    const handle2FAVerify = async () => {
      if (otpValue.length !== 6) {
@@ -458,6 +533,15 @@ export default function Auth() {
                     className="space-y-5"
                   >
  
+                    {diagnostics && (
+                      <AuthDiagnosticsPanel
+                        diagnostics={diagnostics}
+                        onRetry={() => setDiagnostics(null)}
+                        onUseProxy={handleProxyLogin}
+                        proxying={proxying}
+                      />
+                    )}
+
                     {/* Email */}
                    <div className="space-y-2">
                      <Label htmlFor="login-email" className="text-foreground text-sm">Email</Label>
@@ -651,12 +735,24 @@ export default function Auth() {
                           disabled={isSubmitting || !forgotEmail}
                           onClick={async () => {
                             setIsSubmitting(true);
-                            const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-                              redirectTo: `${window.location.origin}/auth`,
-                            });
+                            let errMsg: string | null = null;
+                            try {
+                              const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+                                redirectTo: `${window.location.origin}/auth`,
+                              });
+                              errMsg = error?.message ?? null;
+                              if (error && isFetchFailure(error)) {
+                                // Fall back to server-side proxy
+                                const res = await proxyRecover(forgotEmail);
+                                errMsg = res.error;
+                              }
+                            } catch (err) {
+                              const res = await proxyRecover(forgotEmail);
+                              errMsg = res.error ?? (err as Error).message;
+                            }
                             setIsSubmitting(false);
-                            if (error) {
-                              toast({ variant: 'destructive', title: 'Error', description: error.message });
+                            if (errMsg) {
+                              toast({ variant: 'destructive', title: 'Error', description: `/auth/v1/recover — ${errMsg}` });
                             } else {
                               setResetSent(true);
                               toast({ title: 'Email sent', description: 'Check your inbox for password reset instructions.' });
