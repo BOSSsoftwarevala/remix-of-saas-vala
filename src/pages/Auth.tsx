@@ -92,42 +92,61 @@ export default function Auth() {
   const { myApplications, submitApplication } = useResellerApplications();
  
   // Pre-login connectivity probe — surfaces adblock/network blocks before the user submits.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const result = await checkAuthConnectivity();
-      if (cancelled) return;
-      setHealthChecked(true);
-      if (!result.ok) {
-        setDiagnostics({
-          endpoint: result.endpoint,
-          message: result.blocked
-            ? 'Request was blocked before reaching the server (ad-blocker, firewall, or offline).'
-            : `Health check failed${result.status ? ` (HTTP ${result.status})` : ''}.`,
-          kind: result.blocked ? 'adblock' : 'network',
-          healthBlocked: true,
-        });
-      }
-    })();
-    return () => { cancelled = true; };
+  const runHealthCheck = useCallback(async () => {
+    setChecking(true);
+    setConnState('checking');
+    setConnSummary('Checking your connection to the server…');
+    const result = await checkAuthConnectivity();
+    setLastCheck(result);
+    setChecking(false);
+
+    if (result.ok) {
+      setConnState('ok');
+      setConnSummary(`Connection to the server is fine (${Math.round(result.durationMs)} ms).`);
+      // An earlier block was transient — clear only the health-derived notice.
+      setDiagnostics((current) => (current?.healthBlocked ? null : current));
+      return result;
+    }
+
+    const blocked = !!result.blocked;
+    setConnState('blocked');
+    setConnSummary(
+      blocked
+        ? 'Your browser is blocking the server — sign-in will fail until this is fixed.'
+        : `The server could not be reached normally${result.status ? ` (HTTP ${result.status})` : ''}.`,
+    );
+    setDiagnostics({
+      endpoint: result.endpoint,
+      message: blocked
+        ? 'Request was blocked before reaching the server (ad-blocker, firewall, or offline).'
+        : `Health check failed${result.status ? ` (HTTP ${result.status})` : ''}.`,
+      kind: blocked ? 'adblock' : result.failureMode === 'timeout' ? 'network' : 'unknown',
+      healthBlocked: true,
+      check: result.check,
+      failureMode: result.failureMode,
+      durationMs: result.durationMs,
+    });
+    return result;
   }, []);
 
-  const buildDiagnostics = (err: Error, hint: 'token' | 'recover'): AuthDiagnostics => {
+  useEffect(() => {
+    void runHealthCheck();
+  }, [runHealthCheck]);
+
+  const buildDiagnostics = (err: Error, hint: 'token' | 'recover', durationMs?: number): AuthDiagnostics => {
     const endpoint = `/auth/v1/${hint === 'token' ? 'token?grant_type=password' : 'recover'}`;
-    if (isFetchFailure(err)) {
-      return {
-        endpoint,
-        message: 'Browser blocked the request before it reached the server.',
-        kind: 'adblock',
-      };
+    const failureMode = classifyFailure(err);
+    const base = { endpoint, check: hint, failureMode, durationMs };
+    if (isFetchFailure(err) || failureMode === 'blocked' || failureMode === 'offline') {
+      return { ...base, message: 'Browser blocked the request before it reached the server.', kind: 'adblock' };
     }
     if (/invalid.*credentials|invalid login/i.test(err.message)) {
-      return { endpoint, message: err.message, kind: 'credentials' };
+      return { ...base, message: err.message, kind: 'credentials' };
     }
     if (/cors|blocked by/i.test(err.message)) {
-      return { endpoint, message: err.message, kind: 'cors' };
+      return { ...base, message: err.message, kind: 'cors' };
     }
-    return { endpoint, message: err.message || 'Unknown error', kind: 'unknown' };
+    return { ...base, message: err.message || 'Unknown error', kind: 'unknown' };
   };
 
    // Redirect based on role after login
