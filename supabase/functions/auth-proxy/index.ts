@@ -1,10 +1,17 @@
 // Server-side proxy for Supabase auth endpoints. Lets the browser reach
 // /functions/v1/auth-proxy/* when filter lists / corp policies block
 // direct calls to /auth/v1/*. Runs with verify_jwt=false (public).
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+};
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

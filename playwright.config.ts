@@ -4,7 +4,8 @@ const BASE_URL = process.env.E2E_BASE_URL || 'http://127.0.0.1:4173';
 const START_WEB_SERVER = process.env.E2E_START_WEB_SERVER !== 'false';
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: '.',
+  testMatch: ['e2e/**/*.spec.ts', 'tests/e2e/**/*.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
