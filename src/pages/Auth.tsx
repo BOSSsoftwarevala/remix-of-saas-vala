@@ -1,4 +1,4 @@
- import { useState, useEffect } from 'react';
+ import { useState, useEffect, useCallback } from 'react';
  import { useNavigate, useSearchParams } from 'react-router-dom';
  import { useAuth } from '@/hooks/useAuth';
  import { Button } from '@/components/ui/button';
@@ -15,8 +15,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
 import { useResellerApplications } from '@/hooks/useResellerApplications';
 import { consumePostLoginRedirect } from '@/lib/sessionState';
-import { checkAuthConnectivity, isFetchFailure, proxySignIn, proxyRecover } from '@/lib/authHealth';
-import { AuthDiagnosticsPanel, type AuthDiagnostics } from '@/components/auth/AuthDiagnosticsPanel';
+import {
+  checkAuthConnectivity,
+  classifyFailure,
+  isFetchFailure,
+  proxySignIn,
+  proxyRecover,
+  recordAuthEvent,
+  type HealthResult,
+} from '@/lib/authHealth';
+import {
+  AuthDiagnosticsPanel,
+  type AuthConnectionState,
+  type AuthDiagnostics,
+} from '@/components/auth/AuthDiagnosticsPanel';
 import { supabase as _sb } from '@/integrations/supabase/client';
  
  const loginSchema = z.object({
@@ -56,7 +68,10 @@ export default function Auth() {
   const [resetSent, setResetSent] = useState(false);
   const [diagnostics, setDiagnostics] = useState<AuthDiagnostics | null>(null);
   const [proxying, setProxying] = useState(false);
-  const [healthChecked, setHealthChecked] = useState(false);
+  const [connState, setConnState] = useState<AuthConnectionState>('checking');
+  const [connSummary, setConnSummary] = useState('Checking your connection to the server…');
+  const [lastCheck, setLastCheck] = useState<HealthResult | null>(null);
+  const [checking, setChecking] = useState(true);
  
    // Login form state
    const [loginEmail, setLoginEmail] = useState('');
