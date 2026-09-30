@@ -1,4 +1,4 @@
- import { useState, useEffect } from 'react';
+ import { useState, useEffect, useCallback } from 'react';
  import { useNavigate, useSearchParams } from 'react-router-dom';
  import { useAuth } from '@/hooks/useAuth';
  import { Button } from '@/components/ui/button';
@@ -15,8 +15,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import saasValaLogo from '@/assets/saas-vala-logo.jpg';
 import { useResellerApplications } from '@/hooks/useResellerApplications';
 import { consumePostLoginRedirect } from '@/lib/sessionState';
-import { checkAuthConnectivity, isFetchFailure, proxySignIn, proxyRecover } from '@/lib/authHealth';
-import { AuthDiagnosticsPanel, type AuthDiagnostics } from '@/components/auth/AuthDiagnosticsPanel';
+import {
+  checkAuthConnectivity,
+  classifyFailure,
+  isFetchFailure,
+  proxySignIn,
+  proxyRecover,
+  recordAuthEvent,
+  type HealthResult,
+} from '@/lib/authHealth';
+import {
+  AuthDiagnosticsPanel,
+  type AuthConnectionState,
+  type AuthDiagnostics,
+} from '@/components/auth/AuthDiagnosticsPanel';
 import { supabase as _sb } from '@/integrations/supabase/client';
  
  const loginSchema = z.object({
@@ -56,7 +68,10 @@ export default function Auth() {
   const [resetSent, setResetSent] = useState(false);
   const [diagnostics, setDiagnostics] = useState<AuthDiagnostics | null>(null);
   const [proxying, setProxying] = useState(false);
-  const [healthChecked, setHealthChecked] = useState(false);
+  const [connState, setConnState] = useState<AuthConnectionState>('checking');
+  const [connSummary, setConnSummary] = useState('Checking your connection to the server…');
+  const [lastCheck, setLastCheck] = useState<HealthResult | null>(null);
+  const [checking, setChecking] = useState(true);
  
    // Login form state
    const [loginEmail, setLoginEmail] = useState('');
@@ -77,42 +92,61 @@ export default function Auth() {
   const { myApplications, submitApplication } = useResellerApplications();
  
   // Pre-login connectivity probe — surfaces adblock/network blocks before the user submits.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const result = await checkAuthConnectivity();
-      if (cancelled) return;
-      setHealthChecked(true);
-      if (!result.ok) {
-        setDiagnostics({
-          endpoint: result.endpoint,
-          message: result.blocked
-            ? 'Request was blocked before reaching the server (ad-blocker, firewall, or offline).'
-            : `Health check failed${result.status ? ` (HTTP ${result.status})` : ''}.`,
-          kind: result.blocked ? 'adblock' : 'network',
-          healthBlocked: true,
-        });
-      }
-    })();
-    return () => { cancelled = true; };
+  const runHealthCheck = useCallback(async () => {
+    setChecking(true);
+    setConnState('checking');
+    setConnSummary('Checking your connection to the server…');
+    const result = await checkAuthConnectivity();
+    setLastCheck(result);
+    setChecking(false);
+
+    if (result.ok) {
+      setConnState('ok');
+      setConnSummary(`Connection to the server is fine (${Math.round(result.durationMs)} ms).`);
+      // An earlier block was transient — clear only the health-derived notice.
+      setDiagnostics((current) => (current?.healthBlocked ? null : current));
+      return result;
+    }
+
+    const blocked = !!result.blocked;
+    setConnState('blocked');
+    setConnSummary(
+      blocked
+        ? 'Your browser is blocking the server — sign-in will fail until this is fixed.'
+        : `The server could not be reached normally${result.status ? ` (HTTP ${result.status})` : ''}.`,
+    );
+    setDiagnostics({
+      endpoint: result.endpoint,
+      message: blocked
+        ? 'Request was blocked before reaching the server (ad-blocker, firewall, or offline).'
+        : `Health check failed${result.status ? ` (HTTP ${result.status})` : ''}.`,
+      kind: blocked ? 'adblock' : result.failureMode === 'timeout' ? 'network' : 'unknown',
+      healthBlocked: true,
+      check: result.check,
+      failureMode: result.failureMode,
+      durationMs: result.durationMs,
+    });
+    return result;
   }, []);
 
-  const buildDiagnostics = (err: Error, hint: 'token' | 'recover'): AuthDiagnostics => {
+  useEffect(() => {
+    void runHealthCheck();
+  }, [runHealthCheck]);
+
+  const buildDiagnostics = (err: Error, hint: 'token' | 'recover', durationMs?: number): AuthDiagnostics => {
     const endpoint = `/auth/v1/${hint === 'token' ? 'token?grant_type=password' : 'recover'}`;
-    if (isFetchFailure(err)) {
-      return {
-        endpoint,
-        message: 'Browser blocked the request before it reached the server.',
-        kind: 'adblock',
-      };
+    const failureMode = classifyFailure(err);
+    const base = { endpoint, check: hint, failureMode, durationMs };
+    if (isFetchFailure(err) || failureMode === 'blocked' || failureMode === 'offline') {
+      return { ...base, message: 'Browser blocked the request before it reached the server.', kind: 'adblock' };
     }
     if (/invalid.*credentials|invalid login/i.test(err.message)) {
-      return { endpoint, message: err.message, kind: 'credentials' };
+      return { ...base, message: err.message, kind: 'credentials' };
     }
     if (/cors|blocked by/i.test(err.message)) {
-      return { endpoint, message: err.message, kind: 'cors' };
+      return { ...base, message: err.message, kind: 'cors' };
     }
-    return { endpoint, message: err.message || 'Unknown error', kind: 'unknown' };
+    return { ...base, message: err.message || 'Unknown error', kind: 'unknown' };
   };
 
    // Redirect based on role after login
@@ -156,31 +190,61 @@ export default function Auth() {
        return;
      }
  
-     setIsSubmitting(true);
-    let error: Error | null = null;
-    try {
-      const res = await signIn(loginEmail, loginPassword);
-      error = res.error;
-    } catch (err) {
-      error = err as Error;
-    }
-    setIsSubmitting(false);
-
-    if (error) {
-      const diag = buildDiagnostics(error, 'token');
-      setDiagnostics(diag);
-      toast({
-        variant: 'destructive',
-        title: 'Login failed',
-        description: `${diag.endpoint} — ${diag.message}`,
-      });
-    } else {
-       toast({
-         title: 'Welcome back!',
-         description: 'You have been logged in successfully.',
-       });
+      setIsSubmitting(true);
+     const startedAt = new Date().toISOString();
+     const t0 = performance.now();
+     let error: Error | null = null;
+     try {
+       const res = await signIn(loginEmail, loginPassword);
+       error = res.error;
+     } catch (err) {
+       error = err as Error;
      }
-   };
+     const durationMs = performance.now() - t0;
+     setIsSubmitting(false);
+
+     if (error) {
+       const diag = buildDiagnostics(error, 'token', durationMs);
+       setDiagnostics(diag);
+       recordAuthEvent({
+         check: 'token',
+         endpoint: diag.endpoint,
+         method: 'POST',
+         ok: false,
+         failureMode: diag.failureMode ?? 'unknown',
+         blocked: diag.kind === 'adblock' || diag.kind === 'cors' || diag.kind === 'network',
+         error: error.message,
+         errorName: (error as Error).name,
+         durationMs,
+         startedAt,
+       });
+       if (diag.kind === 'credentials') {
+         setConnState('ok');
+         setConnSummary('The server is reachable — the email or password is incorrect.');
+       } else {
+         setConnState('blocked');
+         setConnSummary('Sign-in could not be completed — the request never reached the server.');
+       }
+       toast({
+         variant: 'destructive',
+         title: 'Login failed',
+         description: `${diag.endpoint} — ${diag.message}`,
+       });
+     } else {
+       recordAuthEvent({
+         check: 'token',
+         endpoint: '/auth/v1/token?grant_type=password',
+         method: 'POST',
+         ok: true,
+         durationMs,
+         startedAt,
+       });
+        toast({
+          title: 'Welcome back!',
+          description: 'You have been logged in successfully.',
+        });
+      }
+    };
 
   const handleProxyLogin = async () => {
     if (!loginEmail || !loginPassword) return;
@@ -188,6 +252,14 @@ export default function Auth() {
     const { session, error } = await proxySignIn(loginEmail, loginPassword);
     setProxying(false);
     if (error || !session?.access_token) {
+      setDiagnostics({
+        endpoint: '/functions/v1/auth-proxy/token',
+        message: error || 'No session returned',
+        kind: 'unknown',
+        check: 'proxy.token',
+      });
+      setConnState('blocked');
+      setConnSummary('The secure proxy could not sign you in either — see the detail above.');
       toast({ variant: 'destructive', title: 'Proxy login failed', description: error || 'No session returned' });
       return;
     }
@@ -196,10 +268,14 @@ export default function Auth() {
       refresh_token: session.refresh_token,
     });
     if (setErr) {
+      setConnState('blocked');
+      setConnSummary('Signed in via proxy, but the session could not be applied on this device.');
       toast({ variant: 'destructive', title: 'Session error', description: setErr.message });
       return;
     }
     setDiagnostics(null);
+    setConnState('ok');
+    setConnSummary('Signed in via the secure proxy — the direct sign-in path stays blocked.');
     toast({ title: 'Signed in via proxy', description: 'Routed around the blocked endpoint.' });
   };
  
@@ -533,14 +609,17 @@ export default function Auth() {
                     className="space-y-5"
                   >
  
-                    {diagnostics && (
-                      <AuthDiagnosticsPanel
-                        diagnostics={diagnostics}
-                        onRetry={() => setDiagnostics(null)}
-                        onUseProxy={handleProxyLogin}
-                        proxying={proxying}
-                      />
-                    )}
+                    <AuthDiagnosticsPanel
+                      state={connState}
+                      summary={connSummary}
+                      diagnostics={diagnostics}
+                      lastCheck={lastCheck}
+                      checking={checking}
+                      onRetryHealth={() => void runHealthCheck()}
+                      onUseProxy={handleProxyLogin}
+                      proxying={proxying}
+                    />
+
 
                     {/* Email */}
                    <div className="space-y-2">
@@ -714,6 +793,14 @@ export default function Auth() {
 
                     {!resetSent ? (
                       <>
+                        <AuthDiagnosticsPanel
+                          state={connState}
+                          summary={connSummary}
+                          diagnostics={diagnostics}
+                          lastCheck={lastCheck}
+                          checking={checking}
+                          onRetryHealth={() => void runHealthCheck()}
+                        />
                         <div className="space-y-2">
                           <Label htmlFor="forgot-email" className="text-foreground text-sm">Email</Label>
                           <div className="relative">
@@ -735,7 +822,11 @@ export default function Auth() {
                           disabled={isSubmitting || !forgotEmail}
                           onClick={async () => {
                             setIsSubmitting(true);
+                            setDiagnostics(null);
+                            const startedAt = new Date().toISOString();
+                            const t0 = performance.now();
                             let errMsg: string | null = null;
+                            let usedProxy = false;
                             try {
                               const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
                                 redirectTo: `${window.location.origin}/auth`,
@@ -743,19 +834,53 @@ export default function Auth() {
                               errMsg = error?.message ?? null;
                               if (error && isFetchFailure(error)) {
                                 // Fall back to server-side proxy
+                                usedProxy = true;
                                 const res = await proxyRecover(forgotEmail);
                                 errMsg = res.error;
                               }
                             } catch (err) {
+                              usedProxy = true;
                               const res = await proxyRecover(forgotEmail);
                               errMsg = res.error ?? (err as Error).message;
                             }
+                            const durationMs = performance.now() - t0;
                             setIsSubmitting(false);
+
                             if (errMsg) {
-                              toast({ variant: 'destructive', title: 'Error', description: `/auth/v1/recover — ${errMsg}` });
+                              const diag = buildDiagnostics(new Error(errMsg), 'recover', durationMs);
+                              setDiagnostics(diag);
+                              recordAuthEvent({
+                                check: 'recover',
+                                endpoint: diag.endpoint,
+                                method: 'POST',
+                                ok: false,
+                                failureMode: diag.failureMode ?? 'unknown',
+                                blocked: usedProxy === false && diag.kind !== 'unknown',
+                                error: errMsg,
+                                durationMs,
+                                startedAt,
+                              });
+                              if (diag.kind === 'adblock' || diag.kind === 'cors' || diag.kind === 'network') {
+                                setConnState('blocked');
+                                setConnSummary('Reset link could not be sent — the request never reached the server.');
+                              }
+                              toast({ variant: 'destructive', title: 'Error', description: `${diag.endpoint} — ${diag.message}` });
                             } else {
+                              recordAuthEvent({
+                                check: 'recover',
+                                endpoint: usedProxy ? '/functions/v1/auth-proxy/recover' : '/auth/v1/recover',
+                                method: 'POST',
+                                ok: true,
+                                durationMs,
+                                startedAt,
+                              });
                               setResetSent(true);
-                              toast({ title: 'Email sent', description: 'Check your inbox for password reset instructions.' });
+                              toast({
+                                title: 'Email sent',
+                                description: usedProxy
+                                  ? 'Check your inbox — sent via the secure proxy.'
+                                  : 'Check your inbox for password reset instructions.',
+                              });
                             }
                           }}
                         >
