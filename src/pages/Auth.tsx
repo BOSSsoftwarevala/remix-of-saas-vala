@@ -609,14 +609,17 @@ export default function Auth() {
                     className="space-y-5"
                   >
  
-                    {diagnostics && (
-                      <AuthDiagnosticsPanel
-                        diagnostics={diagnostics}
-                        onRetry={() => setDiagnostics(null)}
-                        onUseProxy={handleProxyLogin}
-                        proxying={proxying}
-                      />
-                    )}
+                    <AuthDiagnosticsPanel
+                      state={connState}
+                      summary={connSummary}
+                      diagnostics={diagnostics}
+                      lastCheck={lastCheck}
+                      checking={checking}
+                      onRetryHealth={() => void runHealthCheck()}
+                      onUseProxy={handleProxyLogin}
+                      proxying={proxying}
+                    />
+
 
                     {/* Email */}
                    <div className="space-y-2">
