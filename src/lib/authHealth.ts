@@ -117,6 +117,7 @@ export function recordAuthEvent(
     url: event.url,
     method: event.method,
     status: event.status,
+    startedAt: event.startedAt,
     failureMode: event.failureMode,
     blocked: event.blocked,
     durationMs: Math.round(event.durationMs),
