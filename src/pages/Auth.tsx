@@ -793,6 +793,14 @@ export default function Auth() {
 
                     {!resetSent ? (
                       <>
+                        <AuthDiagnosticsPanel
+                          state={connState}
+                          summary={connSummary}
+                          diagnostics={diagnostics}
+                          lastCheck={lastCheck}
+                          checking={checking}
+                          onRetryHealth={() => void runHealthCheck()}
+                        />
                         <div className="space-y-2">
                           <Label htmlFor="forgot-email" className="text-foreground text-sm">Email</Label>
                           <div className="relative">
@@ -814,7 +822,11 @@ export default function Auth() {
                           disabled={isSubmitting || !forgotEmail}
                           onClick={async () => {
                             setIsSubmitting(true);
+                            setDiagnostics(null);
+                            const startedAt = new Date().toISOString();
+                            const t0 = performance.now();
                             let errMsg: string | null = null;
+                            let usedProxy = false;
                             try {
                               const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
                                 redirectTo: `${window.location.origin}/auth`,
@@ -822,19 +834,53 @@ export default function Auth() {
                               errMsg = error?.message ?? null;
                               if (error && isFetchFailure(error)) {
                                 // Fall back to server-side proxy
+                                usedProxy = true;
                                 const res = await proxyRecover(forgotEmail);
                                 errMsg = res.error;
                               }
                             } catch (err) {
+                              usedProxy = true;
                               const res = await proxyRecover(forgotEmail);
                               errMsg = res.error ?? (err as Error).message;
                             }
+                            const durationMs = performance.now() - t0;
                             setIsSubmitting(false);
+
                             if (errMsg) {
-                              toast({ variant: 'destructive', title: 'Error', description: `/auth/v1/recover — ${errMsg}` });
+                              const diag = buildDiagnostics(new Error(errMsg), 'recover', durationMs);
+                              setDiagnostics(diag);
+                              recordAuthEvent({
+                                check: 'recover',
+                                endpoint: diag.endpoint,
+                                method: 'POST',
+                                ok: false,
+                                failureMode: diag.failureMode ?? 'unknown',
+                                blocked: usedProxy === false && diag.kind !== 'unknown',
+                                error: errMsg,
+                                durationMs,
+                                startedAt,
+                              });
+                              if (diag.kind === 'adblock' || diag.kind === 'cors' || diag.kind === 'network') {
+                                setConnState('blocked');
+                                setConnSummary('Reset link could not be sent — the request never reached the server.');
+                              }
+                              toast({ variant: 'destructive', title: 'Error', description: `${diag.endpoint} — ${diag.message}` });
                             } else {
+                              recordAuthEvent({
+                                check: 'recover',
+                                endpoint: usedProxy ? '/functions/v1/auth-proxy/recover' : '/auth/v1/recover',
+                                method: 'POST',
+                                ok: true,
+                                durationMs,
+                                startedAt,
+                              });
                               setResetSent(true);
-                              toast({ title: 'Email sent', description: 'Check your inbox for password reset instructions.' });
+                              toast({
+                                title: 'Email sent',
+                                description: usedProxy
+                                  ? 'Check your inbox — sent via the secure proxy.'
+                                  : 'Check your inbox for password reset instructions.',
+                              });
                             }
                           }}
                         >
