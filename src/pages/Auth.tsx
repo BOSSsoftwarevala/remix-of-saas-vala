@@ -252,6 +252,14 @@ export default function Auth() {
     const { session, error } = await proxySignIn(loginEmail, loginPassword);
     setProxying(false);
     if (error || !session?.access_token) {
+      setDiagnostics({
+        endpoint: '/functions/v1/auth-proxy/token',
+        message: error || 'No session returned',
+        kind: 'unknown',
+        check: 'proxy.token',
+      });
+      setConnState('blocked');
+      setConnSummary('The secure proxy could not sign you in either — see the detail above.');
       toast({ variant: 'destructive', title: 'Proxy login failed', description: error || 'No session returned' });
       return;
     }
@@ -260,10 +268,14 @@ export default function Auth() {
       refresh_token: session.refresh_token,
     });
     if (setErr) {
+      setConnState('blocked');
+      setConnSummary('Signed in via proxy, but the session could not be applied on this device.');
       toast({ variant: 'destructive', title: 'Session error', description: setErr.message });
       return;
     }
     setDiagnostics(null);
+    setConnState('ok');
+    setConnSummary('Signed in via the secure proxy — the direct sign-in path stays blocked.');
     toast({ title: 'Signed in via proxy', description: 'Routed around the blocked endpoint.' });
   };
  
