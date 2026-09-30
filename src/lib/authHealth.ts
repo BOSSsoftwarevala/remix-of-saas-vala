@@ -42,6 +42,8 @@ export type HealthResult = {
 export type AuthHealthEvent = {
   id: string;
   at: string;
+  /** Wall-clock moment the attempt began (differs from `at`, which is when it was recorded). */
+  startedAt?: string;
   check: AuthCheckName;
   endpoint: string;
   url: string;
