@@ -190,31 +190,61 @@ export default function Auth() {
        return;
      }
  
-     setIsSubmitting(true);
-    let error: Error | null = null;
-    try {
-      const res = await signIn(loginEmail, loginPassword);
-      error = res.error;
-    } catch (err) {
-      error = err as Error;
-    }
-    setIsSubmitting(false);
-
-    if (error) {
-      const diag = buildDiagnostics(error, 'token');
-      setDiagnostics(diag);
-      toast({
-        variant: 'destructive',
-        title: 'Login failed',
-        description: `${diag.endpoint} — ${diag.message}`,
-      });
-    } else {
-       toast({
-         title: 'Welcome back!',
-         description: 'You have been logged in successfully.',
-       });
+      setIsSubmitting(true);
+     const startedAt = new Date().toISOString();
+     const t0 = performance.now();
+     let error: Error | null = null;
+     try {
+       const res = await signIn(loginEmail, loginPassword);
+       error = res.error;
+     } catch (err) {
+       error = err as Error;
      }
-   };
+     const durationMs = performance.now() - t0;
+     setIsSubmitting(false);
+
+     if (error) {
+       const diag = buildDiagnostics(error, 'token', durationMs);
+       setDiagnostics(diag);
+       recordAuthEvent({
+         check: 'token',
+         endpoint: diag.endpoint,
+         method: 'POST',
+         ok: false,
+         failureMode: diag.failureMode ?? 'unknown',
+         blocked: diag.kind === 'adblock' || diag.kind === 'cors' || diag.kind === 'network',
+         error: error.message,
+         errorName: (error as Error).name,
+         durationMs,
+         startedAt,
+       });
+       if (diag.kind === 'credentials') {
+         setConnState('ok');
+         setConnSummary('The server is reachable — the email or password is incorrect.');
+       } else {
+         setConnState('blocked');
+         setConnSummary('Sign-in could not be completed — the request never reached the server.');
+       }
+       toast({
+         variant: 'destructive',
+         title: 'Login failed',
+         description: `${diag.endpoint} — ${diag.message}`,
+       });
+     } else {
+       recordAuthEvent({
+         check: 'token',
+         endpoint: '/auth/v1/token?grant_type=password',
+         method: 'POST',
+         ok: true,
+         durationMs,
+         startedAt,
+       });
+        toast({
+          title: 'Welcome back!',
+          description: 'You have been logged in successfully.',
+        });
+      }
+    };
 
   const handleProxyLogin = async () => {
     if (!loginEmail || !loginPassword) return;
