@@ -1249,7 +1249,21 @@ async function enforceSessionBinding(
   return null
 }
 
+// Modules a signed-out visitor may read. Only GET is served without a session,
+// and the request runs with the anonymous client, so row-level security decides
+// visibility (products, for example, are limited to marketplace_visible + active
+// rows). Mutations still require a session.
+const PUBLIC_READ_MODULES = new Set(['products', 'product', 'category', 'banner', 'offers', 'currency'])
+
+function publicClient() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!
+  )
+}
+
 function adminClient() {
+
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -12047,9 +12061,23 @@ Deno.serve(async (req) => {
       return await handleScheduler(req.method, subParts, body, admin)
     }
 
+    // Public catalog reads: signed-out visitors browse the marketplace, so GET on
+    // these modules is served without a session using the anonymous client.
+    if (req.method === 'GET' && PUBLIC_READ_MODULES.has(String(module || ''))) {
+      const anon = publicClient()
+      const publicUserId = 'anonymous'
+      if (module === 'products') return await handleProducts(req.method, subParts, body, publicUserId, anon)
+      if (module === 'product') return await handleProductAliases(req.method, subParts, body, publicUserId, anon, req)
+      if (module === 'category') return await handleCategoryAliases(req.method, subParts, body, publicUserId, anon)
+      if (module === 'banner') return await handleBannerAliases(req.method, subParts, body, publicUserId, anon)
+      if (module === 'offers') return await handleOffersPublic(req.method, subParts, body, req)
+      if (module === 'currency') return await handleCurrency(req.method, subParts, body)
+    }
+
     // All other endpoints require JWT
     const auth = await authenticate(req)
     if (!auth) return err('Unauthorized', 401)
+
 
     const { userId, supabase: sb } = auth
     const admin = adminClient()
