@@ -155,11 +155,61 @@ function bearerOf(req: Request): string | null {
   return null;
 }
 
-async function authenticate(req: Request): Promise<JwtOutcome> {
-  const token = bearerOf(req) ?? req.headers.get('apikey');
-  if (!token) return { ok: false, reason: 'missing_token' };
-  return await verifyProjectJwt(token);
+/**
+ * The API keys this project itself holds. The anon key here is an HMAC-signed
+ * JWT, which cannot be checked offline without the legacy JWT secret, so it is
+ * compared against the platform's own values - the same gate Supabase's
+ * `apikey` check applies. RSA-signed project JWTs (user sessions, signing-key
+ * migration) are verified cryptographically instead.
+ */
+function projectApiKeys(): string[] {
+  const keys = new Set<string>();
+  if (ANON_KEY) keys.add(ANON_KEY);
+  const raw = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') ?? '';
+  if (raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) {
+        parsed.forEach((k) => typeof k === 'string' && k && keys.add(k));
+      } else if (typeof parsed === 'string' && parsed) {
+        keys.add(parsed);
+      }
+    } catch {
+      raw
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .forEach((k) => keys.add(k));
+    }
+  }
+  return [...keys];
 }
+
+function isProjectApiKey(candidate: string): boolean {
+  return projectApiKeys().some((key) => timingSafeEqualStr(key, candidate));
+}
+
+async function authenticate(req: Request): Promise<JwtOutcome> {
+  const bearer = bearerOf(req);
+  const apikey = req.headers.get('apikey')?.trim() || null;
+  if (!bearer && !apikey) return { ok: false, reason: 'missing_token' };
+
+  // A supplied apikey must be this project's key.
+  if (apikey && !isProjectApiKey(apikey)) return { ok: false, reason: 'unknown_api_key' };
+
+  const candidate = bearer ?? apikey!;
+  if (candidate.split('.').length === 3) {
+    const result = await verifyProjectJwt(candidate);
+    if (result.ok) return result;
+    // A legacy HS256 anon/publishable key cannot be verified offline: accept it
+    // only when it matches a key the platform already holds, byte for byte.
+    if (isProjectApiKey(candidate)) return { ok: true, role: 'anon' };
+    return result;
+  }
+
+  if (isProjectApiKey(candidate)) return { ok: true, role: 'anon' };
+  return { ok: false, reason: 'unknown_api_key' };
+}
+
 
 // ---------------------------------------------------------------------------
 // 2. Rate limiting - fixed windows in Postgres via auth_proxy_check_limit()
