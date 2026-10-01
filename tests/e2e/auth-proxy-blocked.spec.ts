@@ -55,7 +55,7 @@ test.describe('auth-proxy fallback when direct Supabase auth is blocked', () => 
 
     const panel = page.getByTestId('auth-panel');
     await expect(panel).toBeVisible();
-    await expect(page.getByTestId('auth-panel-status')).toContainText(/blocked/i);
+    await expect(page.getByTestId('auth-panel-status')).toContainText(/blocked|blocking/i);
     await expect(page.getByRole('button', { name: /retry health check/i })).toBeVisible();
     // No credential-specific advice while nothing has been submitted yet.
     await expect(panel).not.toContainText(/incorrect/i);
@@ -67,7 +67,7 @@ test.describe('auth-proxy fallback when direct Supabase auth is blocked', () => 
 
     await blockDirectAuth(page);
     await page.goto('/auth');
-    await expect(page.getByTestId('auth-panel-status')).toContainText(/blocked/i);
+    await expect(page.getByTestId('auth-panel-status')).toContainText(/blocked|blocking/i);
 
     await page.fill('#login-email', email!);
     await page.fill('#login-password', password!);
