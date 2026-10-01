@@ -173,8 +173,8 @@ async function checkLimit(bucket: string, limit: number, windowSec: number): Pro
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        apikey: ANON_KEY,
-        Authorization: `Bearer ${ANON_KEY}`,
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
       },
       body: JSON.stringify({ p_bucket: bucket, p_limit: limit, p_window_sec: windowSec }),
     });
