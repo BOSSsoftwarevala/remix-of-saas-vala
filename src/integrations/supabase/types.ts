@@ -1037,6 +1037,33 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_proxy_attempts: {
+        Row: {
+          attempts: number
+          bucket_key: string
+          id: number
+          updated_at: string
+          window_seconds: number
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          bucket_key: string
+          id?: never
+          updated_at?: string
+          window_seconds?: number
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          bucket_key?: string
+          id?: never
+          updated_at?: string
+          window_seconds?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       auto_software_queue: {
         Row: {
           ai_generated_description: string | null
@@ -5090,6 +5117,14 @@ export type Database = {
       }
     }
     Functions: {
+      auth_proxy_check_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window_sec: number }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after: number
+        }[]
+      }
       generate_invoice_number: { Args: never; Returns: string }
       generate_license_key: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
