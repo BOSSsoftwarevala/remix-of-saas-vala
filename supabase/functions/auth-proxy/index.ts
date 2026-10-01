@@ -374,7 +374,7 @@ Deno.serve(async (req) => {
       const blocked = await firstLimit([
         ['global:recover', 60, 60],
         [`recover:ip:${ip}`, 6, 60],
-        [`recover:acct:${await hashEmail(email)}`, 3, 3600],
+        [`recover:acct:${await hashEmail(email)}`, 5, 3600],
       ]);
       if (blocked) {
         return json(
