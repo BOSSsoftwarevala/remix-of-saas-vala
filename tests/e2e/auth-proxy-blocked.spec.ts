@@ -9,13 +9,20 @@ import { test, expect, type Page } from '@playwright/test';
  *
  * Needs a real backend, so credentials come from the environment:
  *   E2E_SUPER_ADMIN_EMAIL / E2E_SUPER_ADMIN_PASSWORD  -> login
- *   E2E_RECOVER_EMAIL                                 -> recover (defaults to the above)
- *   E2E_BASE_URL / E2E_START_WEB_SERVER               -> see playwright.config.ts
+ *   E2E_RECOVER_EMAIL                                 -> recover (defaults to a
+ *                                                        throwaway address so the
+ *                                                        real account's reset
+ *                                                        budget is never spent)
+ *   E2E_BASE_URL / E2E_START_WEB_SERVER / E2E_CHROMIUM_PATH -> see playwright.config.ts
  */
 
 const email = process.env.E2E_SUPER_ADMIN_EMAIL;
 const password = process.env.E2E_SUPER_ADMIN_PASSWORD;
-const recoverEmail = process.env.E2E_RECOVER_EMAIL || email;
+// A fresh address each run: the backend answers reset requests the same way for
+// unknown addresses, so the flow is exercised without tripping the per-account
+// reset limit that a repeated real address would hit.
+const recoverEmail = process.env.E2E_RECOVER_EMAIL || `e2e-reset+${Date.now()}@example.com`;
+
 
 /** Direct auth endpoints the browser is assumed to be blocked from. */
 function isBlockedAuthCall(rawUrl: string) {
