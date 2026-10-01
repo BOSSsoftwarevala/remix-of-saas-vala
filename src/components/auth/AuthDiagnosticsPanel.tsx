@@ -139,6 +139,7 @@ export function AuthDiagnosticsPanel({
     <div
       role="status"
       aria-live="polite"
+      data-testid="auth-panel"
       className={cn(
         'rounded-xl border p-4 space-y-3 text-left transition-colors',
         ok && 'border-primary/30 bg-primary/5',
@@ -156,7 +157,10 @@ export function AuthDiagnosticsPanel({
           )}
         />
         <div className="flex-1 min-w-0">
-          <p className={cn('text-sm font-semibold', ok ? 'text-foreground' : blocked ? 'text-destructive' : 'text-muted-foreground')}>
+          <p
+            data-testid="auth-panel-status"
+            className={cn('text-sm font-semibold', ok ? 'text-foreground' : blocked ? 'text-destructive' : 'text-muted-foreground')}
+          >
             {summary}
           </p>
           {detail && (

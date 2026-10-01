@@ -308,6 +308,20 @@ export async function checkAuthConnectivity(timeoutMs = 4000): Promise<HealthRes
  * so the request goes to `/functions/v1/auth-proxy` instead of `/auth/v1/*`
  * (helps when a filter list or corp policy specifically blocks the auth path).
  */
+/** Turns a proxy failure into something a person can act on. */
+function proxyFailureMessage(data: any, fallback: string): string {
+  if (data?.error === 'rate_limited') {
+    const secs = Number(data.retry_after) || 30;
+    const wait = secs >= 60 ? `${Math.ceil(secs / 60)} min` : `${secs}s`;
+    return `Too many attempts — please wait ${wait} and try again.`;
+  }
+  if (data?.error === 'unauthorized') {
+    return 'The secure proxy did not accept this request. Please try signing in again.';
+  }
+  if (data?.error === 'invalid_request') return 'Please check the email address and try again.';
+  return data?.error_description || data?.msg || data?.error || fallback;
+}
+
 export async function proxySignIn(email: string, password: string): Promise<{ session: any; error: string | null }> {
   const result = await probe(
     `${SUPABASE_URL}/functions/v1/auth-proxy/token`,
@@ -321,8 +335,7 @@ export async function proxySignIn(email: string, password: string): Promise<{ se
     { parseJson: true },
   );
   if (!result.ok) {
-    const json = result.data || {};
-    return { session: null, error: json.error_description || json.msg || json.error || result.error || 'Proxy login failed' };
+    return { session: null, error: proxyFailureMessage(result.data, result.error || 'Proxy login failed') };
   }
   return { session: result.data, error: null };
 }
@@ -340,8 +353,7 @@ export async function proxyRecover(email: string): Promise<{ ok: boolean; error:
     { parseJson: true },
   );
   if (!result.ok) {
-    const json = result.data || {};
-    return { ok: false, error: json.error_description || json.msg || json.error || result.error || 'Proxy request failed' };
+    return { ok: false, error: proxyFailureMessage(result.data, result.error || 'Proxy request failed') };
   }
   return { ok: true, error: null };
 }

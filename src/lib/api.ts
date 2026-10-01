@@ -20,8 +20,9 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     'Content-Type': 'application/json',
     'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   };
-  if (!session?.access_token) throw new ApiError('Bearer token required', 401, 'AUTH_TOKEN_MISSING');
-  headers['Authorization'] = `Bearer ${session.access_token}`;
+  // Signed-out visitors get anonymous (public-read) access instead of a hard
+  // failure: the gateway enforces auth per endpoint and answers 401 itself.
+  if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
   return headers;
 }
 

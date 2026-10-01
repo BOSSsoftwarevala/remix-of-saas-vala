@@ -1,0 +1,21 @@
+{
+  "totalDiscovered": 33,
+  "executed": 3,
+  "results": [
+    {
+      "selector": "button:nth(0)",
+      "changedUrl": true,
+      "changedState": false
+    },
+    {
+      "selector": "button:nth(1)",
+      "changedUrl": true,
+      "changedState": true
+    },
+    {
+      "selector": "button:nth(2)",
+      "changedUrl": false,
+      "changedState": true
+    }
+  ]
+}

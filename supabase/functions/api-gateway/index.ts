@@ -1249,7 +1249,21 @@ async function enforceSessionBinding(
   return null
 }
 
+// Modules a signed-out visitor may read. Only GET is served without a session,
+// and the request runs with the anonymous client, so row-level security decides
+// visibility (products, for example, are limited to marketplace_visible + active
+// rows). Mutations still require a session.
+const PUBLIC_READ_MODULES = new Set(['products', 'product', 'category', 'banner', 'offers', 'currency'])
+
+function publicClient() {
+  return createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!
+  )
+}
+
 function adminClient() {
+
   return createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -9672,15 +9686,16 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
       .maybeSingle()
     if (projectError || !project) return fail('Project not found', 404, 'NOT_FOUND')
 
-    const { count: retryCount } = await admin
+    const { count: debugAiRetryCount } = await admin
       .from('ai_tasks')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', projectId)
       .eq('agent', 'DEBUG_AI')
       .eq('output', 'retry_queued')
-    if (Number(retryCount || 0) >= BUILDER_MAX_RETRIES) {
+    if (Number(debugAiRetryCount || 0) >= BUILDER_MAX_RETRIES) {
       return fail('Retry limit reached', 409, 'RETRY_LIMIT_REACHED', { retry_limit: BUILDER_MAX_RETRIES })
     }
+
 
     const { data: lastFailedStep } = await admin
       .from('build_logs')
@@ -9690,13 +9705,8 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-    const { count: retryCount } = await admin
-      .from('ai_tasks')
-      .select('*', { count: 'exact', head: true })
-      .eq('project_id', projectId)
-      .eq('agent', 'DEBUG_AI')
-      .eq('output', 'retry_queued')
-    const currentRetries = Number(retryCount || 0)
+    const currentRetries = Number(debugAiRetryCount || 0)
+
     if (currentRetries >= BUILDER_MAX_RETRIES) {
       return fail('Retry limit reached', 409, 'BUILDER_RETRY_LIMIT_REACHED', {
         retry_limit: BUILDER_MAX_RETRIES,
@@ -12051,9 +12061,23 @@ Deno.serve(async (req) => {
       return await handleScheduler(req.method, subParts, body, admin)
     }
 
+    // Public catalog reads: signed-out visitors browse the marketplace, so GET on
+    // these modules is served without a session using the anonymous client.
+    if (req.method === 'GET' && PUBLIC_READ_MODULES.has(String(module || ''))) {
+      const anon = publicClient()
+      const publicUserId = 'anonymous'
+      if (module === 'products') return await handleProducts(req.method, subParts, body, publicUserId, anon)
+      if (module === 'product') return await handleProductAliases(req.method, subParts, body, publicUserId, anon, req)
+      if (module === 'category') return await handleCategoryAliases(req.method, subParts, body, publicUserId, anon)
+      if (module === 'banner') return await handleBannerAliases(req.method, subParts, body, publicUserId, anon)
+      if (module === 'offers') return await handleOffersPublic(req.method, subParts, body, req)
+      if (module === 'currency') return await handleCurrency(req.method, subParts, body)
+    }
+
     // All other endpoints require JWT
     const auth = await authenticate(req)
     if (!auth) return err('Unauthorized', 401)
+
 
     const { userId, supabase: sb } = auth
     const admin = adminClient()
