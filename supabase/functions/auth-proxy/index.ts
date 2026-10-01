@@ -17,6 +17,9 @@ import { z } from 'npm:zod@3.23.8';
 
 const SUPABASE_URL = (Deno.env.get('SUPABASE_URL') ?? '').replace(/\/$/, '');
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+// The limiter RPC is service_role-only, so counters can't be probed by visitors.
+const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ANON_KEY;
+
 
 const ALLOWED_ROLES = new Set(['anon', 'authenticated', 'service_role']);
 const MAX_BODY_BYTES = 4096;
