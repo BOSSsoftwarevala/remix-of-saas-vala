@@ -9672,15 +9672,16 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
       .maybeSingle()
     if (projectError || !project) return fail('Project not found', 404, 'NOT_FOUND')
 
-    const { count: retryCount } = await admin
+    const { count: debugAiRetryCount } = await admin
       .from('ai_tasks')
       .select('id', { count: 'exact', head: true })
       .eq('project_id', projectId)
       .eq('agent', 'DEBUG_AI')
       .eq('output', 'retry_queued')
-    if (Number(retryCount || 0) >= BUILDER_MAX_RETRIES) {
+    if (Number(debugAiRetryCount || 0) >= BUILDER_MAX_RETRIES) {
       return fail('Retry limit reached', 409, 'RETRY_LIMIT_REACHED', { retry_limit: BUILDER_MAX_RETRIES })
     }
+
 
     const { data: lastFailedStep } = await admin
       .from('build_logs')
@@ -9690,13 +9691,8 @@ async function handleBuilder(method: string, pathParts: string[], body: BuilderC
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-    const { count: retryCount } = await admin
-      .from('ai_tasks')
-      .select('*', { count: 'exact', head: true })
-      .eq('project_id', projectId)
-      .eq('agent', 'DEBUG_AI')
-      .eq('output', 'retry_queued')
-    const currentRetries = Number(retryCount || 0)
+    const currentRetries = Number(debugAiRetryCount || 0)
+
     if (currentRetries >= BUILDER_MAX_RETRIES) {
       return fail('Retry limit reached', 409, 'BUILDER_RETRY_LIMIT_REACHED', {
         retry_limit: BUILDER_MAX_RETRIES,
