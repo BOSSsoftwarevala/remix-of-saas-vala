@@ -4656,7 +4656,7 @@ async function handleMarketplace(method: string, pathParts: string[], body: any,
     if (cacheValid) return json({ data: productListCache.data, cached: true })
 
     const { data, error } = await sb.from('products')
-      .select('id, name, slug, description, short_description, price, status, features, thumbnail_url, git_repo_url, marketplace_visible, apk_url, build_id, build_status, demo_url, demo_login, demo_password, demo_enabled, featured, trending, business_type, deploy_status, discount_percent, rating, tags, apk_enabled, license_enabled')
+      .select('id, name, slug, description, short_description, price, status, features, thumbnail_url, git_repo_url, marketplace_visible, apk_url, demo_url, demo_login, demo_password, demo_enabled, featured, trending, business_type, deploy_status, discount_percent, rating, tags, apk_enabled, license_enabled')
       .eq('marketplace_visible', true)
       .order('created_at', { ascending: false }).limit(500)
     if (error) return err(error.message)
@@ -5336,7 +5336,7 @@ async function handleProductAliases(method: string, pathParts: string[], body: a
 
     const { data, error } = await sb
       .from('products')
-      .select('id, name, slug, description, short_description, price, status, business_type, features, apk_url, build_id, build_status, discount_percent, rating, created_at, marketplace_visible')
+      .select('id, name, slug, description, short_description, price, status, business_type, features, apk_url, discount_percent, rating, created_at, marketplace_visible')
       .order('created_at', { ascending: false })
       .range(from, to)
     if (error) return err(error.message)
@@ -12112,8 +12112,14 @@ Deno.serve(async (req) => {
       if (!effectiveIsReseller) return err('unauthorized', 403, 'UNAUTHORIZED')
     }
     const endpointKey = `${module}/${subParts[0] || ''}`
-    const sessionBindingError = await enforceSessionBinding(admin, userId, req, body, endpointKey, req.method)
-    if (sessionBindingError) return sessionBindingError
+    // System health is already restricted to super admins in handleSystemHealth.
+    // It does not represent a user-bound session action, and the deployed
+    // user_sessions schema has no session_token column to bind against.
+    const isSystemHealthRoute = module === 'system' && ['health', 'run-check'].includes(subParts[0] || '')
+    if (!isSystemHealthRoute) {
+      const sessionBindingError = await enforceSessionBinding(admin, userId, req, body, endpointKey, req.method)
+      if (sessionBindingError) return sessionBindingError
+    }
     const rateLimitRes = await enforceRateLimit(adminClient(), userId, endpointKey, req)
     if (rateLimitRes) return rateLimitRes
 
