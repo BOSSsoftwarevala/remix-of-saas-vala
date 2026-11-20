@@ -40,6 +40,10 @@ Deno.serve(async (req) => {
 
   try {
     const { action, data } = await req.json();
+    const slug = String(data?.slug || '').trim();
+    const repo_url = String(data?.repo_url || '').trim();
+    const product_id = String(data?.product_id || '').trim();
+    const package_name = String(data?.package_name || 'com.saasvala.app').trim();
     const requestTraceId = data?.trace_id || crypto.randomUUID();
     const githubToken = Deno.env.get("SAASVALA_GITHUB_TOKEN")!;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -182,7 +186,17 @@ Deno.serve(async (req) => {
             method: "POST",
             body: JSON.stringify({
               ref: "main",
-
+              inputs: {
+                repo_url: targetRepo,
+                app_slug: slug,
+                package_name,
+                product_id,
+                trace_id: requestTraceId,
+                supabase_url: supabaseUrl,
+              },
+            }),
+          }
+        );
 
         if (!dispatchRes.ok) {
           const err = await dispatchRes.text();
@@ -276,16 +290,17 @@ Deno.serve(async (req) => {
 
 
 
-        const internalToken = Deno.env.get("APK_PIPELINE_INTERNAL_TOKEN") || "";
-
-
-        }
+        const pipelineJson = {
+          acknowledged: true,
+          status: buildStatus || "unknown",
+          product_id: pid || null,
+        };
 
         return respond({
           success: buildStatus === "success",
           message: buildStatus === "success"
-            ? `✅ Build callback forwarded for ${completeSlug}`
-            : `❌ Failed build callback forwarded for ${completeSlug}`,
+            ? `✅ Build callback received for ${completeSlug}`
+            : `❌ Failed build callback received for ${completeSlug}`,
           pipeline: pipelineJson,
         });
       }

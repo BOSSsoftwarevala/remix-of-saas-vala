@@ -1,6 +1,8 @@
 # Roadmap
 
 ## In progress
+- [ ] Correct the APK Factory `trigger_build` syntax error and verify the edge function parses/builds
+- [ ] Add a super-admin APK build-log diagnosis feature using the AI Gateway
 - [x] Fix marketplace listing selects to use columns present in the live products table
 - [x] Allow authenticated super-admin health checks without legacy session-token binding
 - [x] Refine auth diagnostics panel: single clear status summary + "Retry health check" button shown before credentials are submitted
